@@ -1,4 +1,4 @@
 # go
 Grid operations model
 
-# IN DEVELOPMENT
+# Initial code provided by Kostas
