@@ -1,4 +1,8 @@
-# coding: utf-8
+# main files are the following
+#  WECC_LP.py:    solving the unit commitment and economic dispatch problem using linear programming
+#  WECC_MILP.py:  solving the unit commitment and economic dispatch problem using mixed integer linear programming
+
+
 from pyomo.environ import *
 
 model = AbstractModel()
