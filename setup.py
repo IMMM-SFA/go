@@ -1,12 +1,14 @@
 from setuptools import setup, find_packages
 
+
 def get_requirements():
     with open('requirements.txt') as f:
         return f.read().split()
 
+
 setup(
     name='go',
-    version='v0.0.0',
+    version='0.0.0',
     packages=find_packages(),
     url='https://github.com/IMMM-SFA/go',
     license='BSD2-Clause Simplified',

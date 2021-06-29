@@ -5,17 +5,17 @@ Created on Tue Jun 20 22:14:07 2017
 @author: YSu
 """
 
-from pyomo.opt import SolverFactory
+from pypyo.opt import SolverFactory
 from WECC_MILP import model as m1
 from WECC_LP import model as m2
-from pyomo.core import Var
-from pyomo.core import Constraint
-from pyomo.core import Param
+from pypyo.core import Var
+from pypyo.core import Constraint
+from pypyo.core import Param
 from operator import itemgetter
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import pyomo.environ as pyo
+import pypyo.environ as pyo
 
 # Max = 365
 days = 4
