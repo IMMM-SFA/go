@@ -2,7 +2,12 @@ import pyomo.environ as pyo
 
 
 class LinearProgrammingModel:
-    """Solve unit commitment and economic dispatch problem using linear programming."""
+    """Solve unit commitment and economic dispatch problem using linear programming.
+
+    :param data:                        Full path with file name and extention to the input .dat object
+    :type data:                         str
+
+    """
 
     def __init__(self, data):
         self.data = data
