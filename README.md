@@ -4,12 +4,12 @@
 
 ## go
 
-#### `go` is an open-source geospatial Python package for evaluating and analyzing future electricity technology capacity expansion feasibility.
+#### `go` is an open-source grid operations model
 
 ### Purpose
 `go` was created to:
 
-  - Prepare toplogies for grid networks
+  - Prepare topologies for grid networks
   - Model grid operations under projections of alterate futures
 
 
@@ -21,7 +21,7 @@ pip install go
 
 ### Check out a quickstart tutorial to run `go`
 
-Run `go` using the quicktart tutorial: [`go` Quickstarter](https://immm-sfa.github.io/go/user_guide.html#go-quickstarter)
+Run `go` using the quickstart tutorial: [`go` Quickstarter](https://immm-sfa.github.io/go/quickstarter.html)
 
 ### Getting started
 
