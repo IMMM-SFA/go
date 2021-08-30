@@ -35,7 +35,7 @@ go documentation
 
     .. link-button:: getting_started
             :type: ref
-            :text: What **go** is all about
+            :text: What go is all about
             :classes: btn-block btn-secondary stretched-link
 
     ---
