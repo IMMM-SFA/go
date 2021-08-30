@@ -1,7 +1,6 @@
 [![build](https://github.com/IMMM-SFA/go/actions/workflows/build.yml/badge.svg)](https://github.com/IMMM-SFA/go/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/IMMM-SFA/go/branch/initial/graph/badge.svg?token=ESUiPYPocp)](https://codecov.io/gh/IMMM-SFA/go)
-[//]: <> ([![DOI](https://zenodo.org/badge/115649750.svg)](https://zenodo.org/badge/latestdoi/115649750))
-
+<add doi badge here>
 
 ## go
 
