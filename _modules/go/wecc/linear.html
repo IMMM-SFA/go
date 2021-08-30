@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>go.wecc.linear &mdash; go 0.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/go.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/getting_started.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> go
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">go</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to <strong>go</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to_cite.html">How to cite <strong>go</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../footer.html">Acknowledgement</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">go</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>go.wecc.linear</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for go.wecc.linear</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pyomo.environ</span> <span class="k">as</span> <span class="nn">pyo</span>
+
+
+<div class="viewcode-block" id="LinearProgrammingModel"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel">[docs]</a><span class="k">class</span> <span class="nc">LinearProgrammingModel</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Solve unit commitment and economic dispatch problem using linear programming.</span>
+
+<span class="sd">    :param data:                        Full path with file name and extention to the input .dat object</span>
+<span class="sd">    :type data:                         str</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c1"># instantiate model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">AbstractModel</span><span class="p">()</span>
+
+        <span class="c1"># generators by fuel-type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Coal</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Oil</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Gas</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Hydro</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Solar</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Wind</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+
+        <span class="c1"># all generators</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Thermal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Coal</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Oil</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Gas</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Thermal</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Hydro</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Solar</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Wind</span>
+
+        <span class="c1"># transmission sets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Set</span><span class="p">()</span>
+
+        <span class="c1"># Generator type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">typ</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Any</span><span class="p">)</span>
+
+        <span class="c1"># Node name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">node</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">Any</span><span class="p">)</span>
+
+        <span class="c1"># Max capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">maxcap</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Min capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mincap</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Heat rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">heat_rate</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Variable O&amp;M</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">var_om</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Fixed O&amp;M cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">no_load</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Start cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">st_cost</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Ramp rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ramp</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Minimun up time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">minup</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="c1"># Minimun down time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mindn</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Reactance</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">FlowLim</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">LinetoBusMap</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">BustoUnitMap</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
+
+        <span class="c1">######===== Parameters/initial_conditions to run simulation ======#######</span>
+
+        <span class="c1"># full range of time series information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimHours</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">PositiveIntegers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SH_periods</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">RangeSet</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimHours</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimDays</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">PositiveIntegers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SD_periods</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">RangeSet</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimDays</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Operating horizon information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonHours</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">PositiveIntegers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HH_periods</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">RangeSet</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonHours</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">RangeSet</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonHours</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ramp_periods</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">RangeSet</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+
+        <span class="c1"># Demand over simulation period</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimDemand</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="c1"># Horizon demand</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonDemand</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                             <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># variable resources over simulation period</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimHydro</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Hydro</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimSolar</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Solar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SimWind</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Wind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="c1"># Variable resources over horizon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonHydro</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Hydro</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span> <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonSolar</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Solar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                            <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HorizonWind</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Wind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                           <span class="n">mutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Must run resources</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Must</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="c1">######=======================Decision variables======================########</span>
+
+        <span class="c1"># amount of day-ahead energy generated by each generator at each hour</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">mwh</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                 <span class="n">initialize</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># 1 if unit is on in hour i, otherwise 0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">on</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                <span class="n">initialize</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># 1 if unit is switching on in hour i, otherwise 0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">switch</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HH_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span>
+                                    <span class="n">initialize</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># slack variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">S</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">NonNegativeReals</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># transmission line variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Flow</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Theta</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Var</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">)</span>
+
+        <span class="c1">######================Objective function=============########</span>
+
+        <span class="c1"># minimization of system costs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SystemCost</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Objective</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">system_cost_obj_function</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">pyo</span><span class="o">.</span><span class="n">minimize</span><span class="p">)</span>
+
+        <span class="c1">#####========== Logical Constraint =========#############</span>
+
+        <span class="c1">#####==========Ramp Rate Constraints =========#############</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">RampCon1</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Thermal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ramp_periods</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ramp_constraint_one</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">RampCon2</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Thermal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ramp_periods</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ramp_constraint_two</span><span class="p">)</span>
+
+        <span class="c1"># Constraints for Max &amp; Min Capacity of dispatchable resources</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">MaxCap</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                           <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maximum_capacity_constraint</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">MinCap</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                           <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">minimum_capacity_constraint</span><span class="p">)</span>
+
+        <span class="c1"># Max capacity constraints on domestic hydropower</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">HydroConstraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Hydro</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                                    <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hydropower_max_capacity_constraint</span><span class="p">)</span>
+
+        <span class="c1"># Max capacity constraints on solar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">SolarConstraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Solar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                                    <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solar_max_capacity_constraint</span><span class="p">)</span>
+
+        <span class="c1"># Max capacity constraints on wind</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">WindConstraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Wind</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                                   <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">wind_max_capacity_constraint</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">Node_Constraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                                    <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodal_balance_constraint</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">FlowL_Constraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_flow</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ThetaB_Constraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span> <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_bus_voltage_angle</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">FlowU_Constraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                                     <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_flow_max_line_limit</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">FlowLL_Constraint</span> <span class="o">=</span> <span class="n">pyo</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">,</span>
+                                                      <span class="n">rule</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_flow_min_line_limit</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LinearProgrammingModel.system_cost_obj_function"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.system_cost_obj_function">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">system_cost_obj_function</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Objective function for system costs.</span>
+
+<span class="sd">        :param model:                               Pyomo model instance</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">fixed</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">no_load</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">on</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span><span class="p">)</span>
+
+        <span class="n">starts</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">st_cost</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">switch</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">Dispatchable</span><span class="p">)</span>
+
+        <span class="n">coal</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">heat_rate</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">var_om</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">Coal</span><span class="p">)</span>
+
+        <span class="n">oil</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">heat_rate</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">var_om</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">Oil</span><span class="p">)</span>
+
+        <span class="n">gas</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">heat_rate</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="mf">4.5</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">var_om</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">Gas</span><span class="p">)</span>
+
+        <span class="n">slack</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">S</span><span class="p">[</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="mi">100000</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">coal</span> <span class="o">+</span> <span class="n">oil</span> <span class="o">+</span> <span class="n">gas</span> <span class="o">+</span> <span class="n">slack</span> <span class="o">+</span> <span class="n">fixed</span> <span class="o">+</span> <span class="n">starts</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.ramp_constraint_one"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.ramp_constraint_one">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">ramp_constraint_one</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Ramp constraint for the thermal generating units.</span>
+
+<span class="sd">        :param model:                   Pyomo model instance</span>
+
+<span class="sd">        :param j:                       TODO</span>
+
+<span class="sd">        :parma i:                       TODO</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">ramp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.ramp_constraint_two"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.ramp_constraint_two">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">ramp_constraint_two</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Ramp constraint for the thermal generating units.</span>
+
+<span class="sd">        :param model:                   Pyomo model instance</span>
+
+<span class="sd">        :param j:                       TODO</span>
+
+<span class="sd">        :parma i:                       TODO</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">b</span> <span class="o">-</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">ramp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.maximum_capacity_constraint"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.maximum_capacity_constraint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">maximum_capacity_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum capacity constraint of dispatchable resources&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">on</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">maxcap</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.minimum_capacity_constraint"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.minimum_capacity_constraint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">minimum_capacity_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">on</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">mincap</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.hydropower_max_capacity_constraint"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.hydropower_max_capacity_constraint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hydropower_max_capacity_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Max capacity constraints on domestic hydropower.&quot;&quot;&quot;</span>
+
+        <span class="n">daily</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">hh_periods</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">daily</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">HorizonHydro</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.solar_max_capacity_constraint"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.solar_max_capacity_constraint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">solar_max_capacity_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Max capacity constraints on solar&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">HorizonSolar</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.wind_max_capacity_constraint"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.wind_max_capacity_constraint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">wind_max_capacity_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Max capacity constraints on wind&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">HorizonWind</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.nodal_balance_constraint"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.nodal_balance_constraint">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">nodal_balance_constraint</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Power balance constraint.  Creates a balance for each node (supply == demand)&quot;&quot;&quot;</span>
+
+        <span class="n">power_flow</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Flow</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">LinetoBusMap</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+        <span class="n">gen</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">mwh</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">BustoUnitMap</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">Generators</span><span class="p">)</span>
+        <span class="n">slack</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">S</span><span class="p">[</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">must_run</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">Must</span><span class="p">[</span><span class="n">z</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">gen</span> <span class="o">+</span> <span class="n">slack</span> <span class="o">+</span> <span class="n">must_run</span> <span class="o">-</span> <span class="n">power_flow</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">HorizonDemand</span><span class="p">[</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.energy_flow"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.energy_flow">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">energy_flow</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">base_apparent_power</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Energy flowing through transmission lines in Mw/h.</span>
+
+<span class="sd">        :param model:                               TODO</span>
+<span class="sd">        :param l:                                   TODO</span>
+<span class="sd">        :param i:                                   TODO</span>
+<span class="sd">        :param base_apparent_power:                 TODO</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Theta</span><span class="p">[</span><span class="n">z</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">LinetoBusMap</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">base_apparent_power</span> <span class="o">*</span> <span class="n">value</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">Flow</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">Reactance</span><span class="p">[</span><span class="n">l</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.theta_bus_voltage_angle"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.theta_bus_voltage_angle">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">theta_bus_voltage_angle</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">reference_bus</span><span class="o">=</span><span class="s1">&#39;MESA_CAL_20&#39;</span><span class="p">,</span> <span class="n">constant_value</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Volatge angle for the reference bus.</span>
+
+<span class="sd">        :param model:                               TODO</span>
+
+<span class="sd">        :param i:                                   TODO</span>
+
+<span class="sd">        :param reference_bus:                       TODO</span>
+<span class="sd">        :type reference_bus:                        str</span>
+
+<span class="sd">        :param constant_value:                      TODO</span>
+<span class="sd">        :type constant_value:                       int</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">Theta</span><span class="p">[</span><span class="n">reference_bus</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">constant_value</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.energy_flow_max_line_limit"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.energy_flow_max_line_limit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">energy_flow_max_line_limit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maximum energy flow limit of the transmission line.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">Flow</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">FlowLim</span><span class="p">[</span><span class="n">l</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.energy_flow_min_line_limit"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.energy_flow_min_line_limit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">energy_flow_min_line_limit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">negative_factor</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Minimum energy flow limit of the transmission line.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">negative_factor</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">Flow</span><span class="p">[</span><span class="n">l</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">FlowLim</span><span class="p">[</span><span class="n">l</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LinearProgrammingModel.create_instance"><a class="viewcode-back" href="../../../go.wecc.html#go.wecc.linear.LinearProgrammingModel.create_instance">[docs]</a>    <span class="k">def</span> <span class="nf">create_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper to create an instance of the model with data.&quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">create_instance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Battelle Memorial Institute.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

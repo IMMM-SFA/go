@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>go.wecc package &mdash; go 0.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/panels-main.c949a650a448cc0ae9fd3441c0e17fb0.css" type="text/css" />
+  <link rel="stylesheet" href="_static/panels-bootstrap.5fd3999ee7762ccc51105388f4a9d115.css" type="text/css" />
+  <link rel="stylesheet" href="_static/panels-variables.06eb56fa6e07937060861dad626602ad.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/go.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/getting_started.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="setup module" href="setup.html" />
+    <link rel="prev" title="go.ercot package" href="go.ercot.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> go
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">go</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="go.html">go package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="go.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="go.eic.html">go.eic package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="go.ercot.html">go.ercot package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">go.wecc package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="go.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="go.html#module-go.install_supplement">go.install_supplement module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="go.html#go-model-module">go.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="go.html#module-go.package_data">go.package_data module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="go.html#module-go">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="setup.html">setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html">tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to <strong>go</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to_cite.html">How to cite <strong>go</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="footer.html">Acknowledgement</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">go</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="modules.html">go</a> &raquo;</li>
+        
+          <li><a href="go.html">go package</a> &raquo;</li>
+        
+      <li>go.wecc package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/go.wecc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="go-wecc-package">
+<h1>go.wecc package<a class="headerlink" href="#go-wecc-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-go.wecc.linear">
+<span id="go-wecc-linear-module"></span><h2>go.wecc.linear module<a class="headerlink" href="#module-go.wecc.linear" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">go.wecc.linear.</span></span><span class="sig-name descname"><span class="pre">LinearProgrammingModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Solve unit commitment and economic dispatch problem using linear programming.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>str</em>) – Full path with file name and extention to the input .dat object</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.create_instance">
+<span class="sig-name descname"><span class="pre">create_instance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.create_instance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.create_instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper to create an instance of the model with data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.energy_flow">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">energy_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_apparent_power</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.energy_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.energy_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Energy flowing through transmission lines in Mw/h.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – TODO</p></li>
+<li><p><strong>l</strong> – TODO</p></li>
+<li><p><strong>i</strong> – TODO</p></li>
+<li><p><strong>base_apparent_power</strong> – TODO</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.energy_flow_max_line_limit">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">energy_flow_max_line_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.energy_flow_max_line_limit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.energy_flow_max_line_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum energy flow limit of the transmission line.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.energy_flow_min_line_limit">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">energy_flow_min_line_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">negative_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.energy_flow_min_line_limit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.energy_flow_min_line_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum energy flow limit of the transmission line.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.hydropower_max_capacity_constraint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">hydropower_max_capacity_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.hydropower_max_capacity_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.hydropower_max_capacity_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Max capacity constraints on domestic hydropower.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.maximum_capacity_constraint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">maximum_capacity_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.maximum_capacity_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.maximum_capacity_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum capacity constraint of dispatchable resources</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.minimum_capacity_constraint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">minimum_capacity_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.minimum_capacity_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.minimum_capacity_constraint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.nodal_balance_constraint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">nodal_balance_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.nodal_balance_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.nodal_balance_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Power balance constraint.  Creates a balance for each node (supply == demand)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.ramp_constraint_one">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">ramp_constraint_one</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.ramp_constraint_one"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.ramp_constraint_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ramp constraint for the thermal generating units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – Pyomo model instance</p></li>
+<li><p><strong>j</strong> – TODO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parma i</dt>
+<dd class="field-even"><p>TODO</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.ramp_constraint_two">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">ramp_constraint_two</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.ramp_constraint_two"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.ramp_constraint_two" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ramp constraint for the thermal generating units.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – Pyomo model instance</p></li>
+<li><p><strong>j</strong> – TODO</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parma i</dt>
+<dd class="field-even"><p>TODO</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.solar_max_capacity_constraint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">solar_max_capacity_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.solar_max_capacity_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.solar_max_capacity_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Max capacity constraints on solar</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.system_cost_obj_function">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">system_cost_obj_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.system_cost_obj_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.system_cost_obj_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Objective function for system costs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model</strong> – Pyomo model instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.theta_bus_voltage_angle">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">theta_bus_voltage_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_bus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'MESA_CAL_20'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constant_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.theta_bus_voltage_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.theta_bus_voltage_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volatge angle for the reference bus.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – TODO</p></li>
+<li><p><strong>i</strong> – TODO</p></li>
+<li><p><strong>reference_bus</strong> (<em>str</em>) – TODO</p></li>
+<li><p><strong>constant_value</strong> (<em>int</em>) – TODO</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="go.wecc.linear.LinearProgrammingModel.wind_max_capacity_constraint">
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">wind_max_capacity_constraint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/go/wecc/linear.html#LinearProgrammingModel.wind_max_capacity_constraint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#go.wecc.linear.LinearProgrammingModel.wind_max_capacity_constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Max capacity constraints on wind</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-go.wecc.mixed_integer">
+<span id="go-wecc-mixed-integer-module"></span><h2>go.wecc.mixed_integer module<a class="headerlink" href="#module-go.wecc.mixed_integer" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-go.wecc">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-go.wecc" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="setup.html" class="btn btn-neutral float-right" title="setup module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="go.ercot.html" class="btn btn-neutral float-left" title="go.ercot package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Battelle Memorial Institute.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
