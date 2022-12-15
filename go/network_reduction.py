@@ -1169,39 +1169,61 @@ def def_boundary(mpc, ex_bus):
     return bound_bus
 
 
-def BuildYMat(NFROM, NTO, BraNum, LineB, BCIRC, BusNum, NUMB, SelfB):
+def build_y_mat(n_from, n_to, bra_num, line_b, b_circ, bus_num, numb, self_b):
+    """Subroutine BuildYMat constructs an admittance matrix and stores it in a
+    compact storage format to facilitate the use of sparse techniques.
 
-  # Initialization
-  ERP = np.arange(0, BusNum+1)
+    Parameters
+    ----------
+        NFROM: 1xn array containing the bus indices of the from end buses of
+            every branch
+        NTO: 1xn array containing the bus indices of the to end buses of
+            every branch
+        BraNum: scalar containing the number of branches
+        NUMB: 1xn array containing the bus indices
+        SelfB: 1xn array containing the total B shunt on every bus (B shunt on
+            bus and half the branch B shunt)
 
-  # Read the branch one by one
-  # First generate the ERP array
-  for i in range(BraNum):
-    if BCIRC[i] == 1:
-      ERP[NFROM[i]+1:BusNum+1] += 1
-      ERP[NTO[i]+1:BusNum+1] += 1
+    Returns
+    -------
+        CIndx: 1xn array containing the column indices of every row in the
+            admittance matrix
+        ERP: 1xn array containing the end of row pointers of the admittance
+            matrix
+        DataB: 1xn array containing the admittance values in the admittance
+            matrix
+    """
 
-  # Second generate the CIndx and Data array
-  DataB = np.zeros(ERP[BusNum+1])
-  CIndx = np.zeros(ERP[BusNum+1])
-  ICLP = ERP
-  ICLP = ICLP + 1
-  ICLP = np.delete(ICLP, BusNum+1)
-  ICLP = np.insert(ICLP, 0, 0)
-  CIndx[ICLP[1:BusNum+1]] = NUMB
-  ICLP[1:BusNum+1] += 1
+    # Initialization
+    erp = np.arange(0, bus_num+1)
 
-  for i in range(BraNum):
-    DataB[ICLP[np.array([NFROM[i]+1, NTO[i]+1])]] -= LineB[i]
-    if i < BraNum-1:
-      if BCIRC[i+1] == 1:
-        CIndx[ICLP[np.array([NFROM[i]+1, NTO[i]+1])]] = np.array([NTO[i], NFROM[i]])
-        ICLP[np.array([NFROM[i]+1, NTO[i]+1])] += 1
+    # Read the branch one by one
+    # First generate the ERP array
+    for i in range(bra_num):
+    if b_circ[i] == 1:
+      erp[n_from[i]+1:bus_num+1] += 1
+      erp[n_to[i]+1:bus_num+1] += 1
+
+    # Second generate the CIndx and Data array
+    data_b = np.zeros(erp[bus_num+1])
+    c_indx = np.zeros(erp[bus_num+1])
+    iclp = erp
+    iclp = iclp + 1
+    iclp = np.delete(iclp, bus_num+1)
+    iclp = np.insert(iclp, 0, 0)
+    c_indx[iclp[1:bus_num+1]] = numb
+    iclp[1:bus_num+1] += 1
+
+    for i in range(bra_num):
+    data_b[iclp[np.array([n_from[i]+1, n_to[i]+1])]] -= line_b[i]
+    if i < bra_num-1:
+      if b_circ[i+1] == 1:
+        c_indx[iclp[np.array([n_from[i]+1, n_to[i]+1])]] = np.array([n_to[i], n_from[i]])
+        iclp[np.array([n_from[i]+1, n_to[i]+1])] += 1
     else:
-      CIndx[ICLP[np.array([NFROM[i]+1, NTO[i]+1])]] = np.array([NTO[i], NFROM[i]])
+      c_indx[iclp[np.array([n_from[i]+1, n_to[i]+1])]] = np.array([n_to[i], n_from[i]])
 
-  for i in range(BusNum):
-    DataB[ERP[NUMB[i]]+1] += SelfB[i]
+    for i in range(bus_num):
+    data_b[erp[numb[i]]+1] += self_b[i]
 
-  return CIndx, ERP, DataB
-
+    return c_indx, erp, data_b
