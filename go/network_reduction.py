@@ -50,27 +50,40 @@ def tinney_one(erp, piv_ind, piv_ord, ex_bus):
 
 
 def pivot_data(data_b, erp, c_indx, ex_bus, numb, bound_bus):
-    """Subroutine PivotData do pivotting to the input addmittance matrix. Two
-    pivotting will be done: 1. columns and rows corresponding to external
-    buses will be pivotted to the top left corner of the input matrix. 2.
-    Tinney One optimal ordering strategy will be applied to pivot the data in
-    order to reduce fills during (Partial) LU factorization.
+    """Subroutine to pivot the input admittance matrix.
 
-    INPUT DATA:
-      DataB: 1*n array, includes addmittance data of the full model before
-      pivotting
-      ERP: 1*n array, includes end of row pointer before pivotting
-      CIndx: 1*n array, includes column index pointer before pivotting
-      ExBus: 1*n array, includes external bus indices in internal numbering
-      NUMB: 1*n array, includes bus numbers in internal numbering
+   Two pivotting steps are performed:
+   1. columns and rows corresponding to external buses are pivoted to the top left
+   corner of the input matrix.
+   2. Tinney optimal ordering strategy is applied to pivot the data in order to
+   reduce fills during (Partial) LU factorization.
 
-    OUTPUT DATA:
-      DataB: 1*n array, includes pivotted addmittance data of the full model
-      ERP: 1*n array, includes end of row pointer before pivotting
-      CIndx: 1*n array, includes column index pointer
-      PivOrd: 1*n array, includes bus indices after pivotting
-      PivInd: 1*n array, includes bus ordering after pivotting
-    """
+   Parameters
+   ----------
+   DataB : 1d array
+       Includes admittance data of the full model before pivotting
+   ERP : 1d array
+       Includes end of row pointer before pivotting
+   CIndx : 1d array
+       Includes column index pointer before pivotting
+   ExBus : 1d array
+       Includes external bus indices in internal numbering
+   NUMB : 1d array
+       Includes bus numbers in internal numbering
+
+   Returns
+   -------
+   DataB : 1d array
+       Includes pivotted admittance data of the full model
+   ERP : 1d array
+       Includes end of row pointer before pivotting
+   CIndx : 1d array
+       Includes column index pointer
+   PivOrd : 1d array
+       Includes bus indices after pivotting
+   PivInd : 1d array
+       Includes bus ordering after pivotting
+   """
 
     data_bo = np.zeros(data_b.shape)
     c_indx_o = np.zeros(c_indx.shape)
@@ -1394,22 +1407,22 @@ def build_y_mat(n_from, n_to, bra_num, line_b, b_circ, bus_num, numb, self_b):
     # Read the branch one by one
     # First generate the ERP array
     for i in range(bra_num):
-    if b_circ[i] == 1:
-      erp[n_from[i]+1:bus_num+1] += 1
-      erp[n_to[i]+1:bus_num+1] += 1
+        if b_circ[i] == 1:
+          erp[n_from[i]+1:bus_num+1] += 1
+          erp[n_to[i]+1:bus_num+1] += 1
 
-    # Second generate the CIndx and Data array
-    data_b = np.zeros(erp[bus_num+1])
-    c_indx = np.zeros(erp[bus_num+1])
-    iclp = erp
-    iclp = iclp + 1
-    iclp = np.delete(iclp, bus_num+1)
-    iclp = np.insert(iclp, 0, 0)
-    c_indx[iclp[1:bus_num+1]] = numb
-    iclp[1:bus_num+1] += 1
+        # Second generate the CIndx and Data array
+        data_b = np.zeros(erp[bus_num+1])
+        c_indx = np.zeros(erp[bus_num+1])
+        iclp = erp
+        iclp = iclp + 1
+        iclp = np.delete(iclp, bus_num+1)
+        iclp = np.insert(iclp, 0, 0)
+        c_indx[iclp[1:bus_num+1]] = numb
+        iclp[1:bus_num+1] += 1
 
     for i in range(bra_num):
-    data_b[iclp[np.array([n_from[i]+1, n_to[i]+1])]] -= line_b[i]
+        data_b[iclp[np.array([n_from[i]+1, n_to[i]+1])]] -= line_b[i]
     if i < bra_num-1:
       if b_circ[i+1] == 1:
         c_indx[iclp[np.array([n_from[i]+1, n_to[i]+1])]] = np.array([n_to[i], n_from[i]])
@@ -1418,6 +1431,6 @@ def build_y_mat(n_from, n_to, bra_num, line_b, b_circ, bus_num, numb, self_b):
       c_indx[iclp[np.array([n_from[i]+1, n_to[i]+1])]] = np.array([n_to[i], n_from[i]])
 
     for i in range(bus_num):
-    data_b[erp[numb[i]]+1] += self_b[i]
+        data_b[erp[numb[i]]+1] += self_b[i]
 
     return c_indx, erp, data_b
