@@ -666,126 +666,166 @@ def mpreduction(mpc, exbusorig, pf_flag):
     return mpcreduced, link, bcircr
 
 
-def moveExGen(mpcreduced_gen, ExBus, ExBusGen, BCIRC, acflag):
-  BranchRec = np.column_stack((mpcreduced_gen['branch'][:, [1,2]], BCIRC, mpcreduced_gen['branch'][:, [3,4]]))  # fnum,tnum,circuit,r,x
-  if acflag == 0:
-    BranchRec[:, 3] = 0  # for dc, ignore all resistance
+def move_ex_gen(mpcreduced_gen, ex_bus, ex_bus_gen, b_circ, ac_flag):
+    """MoveExGen moves generators on external buses to internal buses based on
+    shortest electrical distance strategy.
 
-  # Read the bus data
-  BusNo = mpcreduced_gen['bus'][:, 1]
+    Parameters
+    ----------
+    mpcreduced_gen : struct
+        Reduced model with all non-generator external buses eliminated.
+    ExBus : 1d array
+        Includes all external bus indices.
+    ExBusGen : 1d array
+        Includes external generator bus indices.
+    BCIRC : 1d array
+        Includes branch circuit numbers in full model.
+    acflag : scalar
+        If 0, ignore all resistance; if 1, calculate electrical distance
+        involving resistance.
 
-  # Convert original bus number to new bus number
-  NewBusNo = np.arange(len(BusNo))
-  BusRec = np.column_stack((NewBusNo,))
-  BusRec = BusRec[BusRec[:, 0].argsort()]
+    Returns
+    -------
+    NewGenBus : 1d array
+        Includes new generator bus numbers after moving generators.
+    Link : 2d array
+        Generator mapping data of all generators. The first column is the
+        original generator bus number and the second column is the new generator
+        bus number after moving external generators.
 
-  tf = np.isin(ExBus, ExBusGen)
-  ExBus = ExBus[tf == 0]
-  ExBus = np.interp(ExBus, BusNo, NewBusNo)
-  tf = np.isin(BusRec[:, 0], ExBus)
-  IntBus = BusRec[tf == 0, 0]
-  BranchRec[:, :2] = np.interp(BranchRec[:, :2], BusNo, NewBusNo)
-  BranchRec = BranchRec[BranchRec[:, [0,1]].argsort(axis=1)]
+    Notes
+    -----
+    The electrical distance between two buses are calcualted as sum of
+    impedance in series connecting the two buses. If acflag = 0, the
+    impedance is same as reactance.
+    The shortest distance is found based on Dijkstra's algorithm.
+    """
 
-  Gen = mpcreduced_gen['gen']
-  Gen[:, 0] = np.interp(Gen[:, 0], BusNo, NewBusNo)
-  Gen = Gen[Gen[:, 0].argsort()]
+    branch_rec = np.column_stack((mpcreduced_gen['branch'][:, [1, 2]],
+                                  b_circ,
+                                  mpcreduced_gen['branch'][:, [3, 4]]))  # fnum,tnum,circuit,r,x
+    if ac_flag == 0:
+        branch_rec[:, 3] = 0  # for dc, ignore all resistance
 
-  # clear num txt
-  # Convert all parallel lines into single lines
-  ignore, I = np.unique(BranchRec[:, [0,1]], axis=0, return_index=True)  # return the first unique rows in BranchRec
-  idx = np.where(np.diff(I) != 1)[0]
-  idx_del = []
-  for k in idx:
-    z = complex(BranchRec[I[k], 3], BranchRec[I[k], 4])  # complex value of impedances
-    for kk in range(I[k]+1, I[k+1]):
-      z1 = complex(BranchRec[kk, 3], BranchRec[kk, 4])
-      z = 1 / (1/z + 1/z1)
-    BranchRec[I[k], 3] = np.real(z)
-    BranchRec[I[k], 4] = np.imag(z)
-    idx_del = np.append(idx_del, range(I[k]+1, I[k+1]))
-  BranchRec = np.delete(BranchRec, idx_del, 0)
+    # Read the bus data
+    bus_no = mpcreduced_gen['bus'][:, 1]
 
-  # Convert the external gen network into a radial network by Zmin
-  GenNum = Gen[:, 0]
-  tf = np.isin(GenNum, IntBus)
-  GenNum[tf == 1] = []
-  LinkedBus = np.zeros(BusNo.shape)
-  LinkedBra = np.zeros(BusNo.shape)
-  # Set up the levels
-  Level = np.full(BusNo.shape, -1)
-  Level[IntBus] = 0
-  # Set up the distance
-  Dist = np.full(BusNo.shape, np.inf)
-  Dist[IntBus] = 0
-  BranchZ = np.sqrt(np.square(BranchRec[:, 3]) + np.square(BranchRec[:, 4]))
+    # Convert original bus number to new bus number
+    new_bus_no = np.arange(len(bus_no))
+    bus_rec = np.column_stack((new_bus_no,))
+    bus_rec = bus_rec[bus_rec[:, 0].argsort()]
 
-  BusPrevLayer = IntBus
-  BusTBD = GenNum
+    tf = np.isin(ex_bus, ex_bus_gen)
+    ex_bus = ex_bus[tf == 0]
+    ex_bus = np.interp(ex_bus, bus_no, new_bus_no)
+    tf = np.isin(bus_rec[:, 0], ex_bus)
+    int_bus = bus_rec[tf == 0, 0]
+    branch_rec[:, :2] = np.interp(branch_rec[:, :2], bus_no, new_bus_no)
+    branch_rec = branch_rec[branch_rec[:, [0, 1]].argsort(axis=1)]
 
-  for lev in range(1000):
-    tf1 = np.isin(BranchRec[:, 0], BusPrevLayer)
-    tf2 = np.isin(BranchRec[:, 1], BusTBD)
-    ind = np.where(tf1 & tf2)[0]
-    for k in ind:
-        pi = BranchRec[k, 0]
-        gi = BranchRec[k, 1]
-        if Dist[gi] > BranchZ[k] + Dist[pi]:
-            Dist[gi] = BranchZ[k] + Dist[pi]
-            LinkedBus[gi] = pi
-            LinkedBra[gi] = k
-            Level[gi] = Level[pi] + 1
+    gen = mpcreduced_gen['gen']
+    gen[:, 0] = np.interp(gen[:, 0], bus_no, new_bus_no)
+    gen = gen[gen[:, 0].argsort()]
 
-    tf1 = np.isin(BranchRec[:, 1], BusPrevLayer)
-    tf2 = np.isin(BranchRec[:, 0], BusTBD)
-    ind = np.where(tf1 & tf2)[0]
-    for k in ind:
-        pi = BranchRec[k, 1]
-        gi = BranchRec[k, 0]
-        if Dist[gi] > BranchZ[k] + Dist[pi]:
-            Dist[gi] = BranchZ[k] + Dist[pi]
-            LinkedBus[gi] = pi
-            LinkedBra[gi] = k
-            Level[gi] = Level[pi] + 1
+    # clear num txt
+    # converter all parallel lines into single lines
+    ignore, i = np.unique(branch_rec[:, [0, 1]], axis=0, return_index=True)  # return the first unique rows in BranchRec
+    idx = np.where(np.diff(i) != 1)[0]
+    idx_del = []
+    for k in idx:
+        z = np.complex(branch_rec[i[k], 2], branch_rec[i[k], 3])  # complex value of impedances
+        for kk in range(i[k] + 1, i[k + 1] - 1):
+            z1 = np.complex(branch_rec[kk, 2], branch_rec[kk, 3])
+            z = 1 / (1 / z + 1 / z1)
+        branch_rec[i[k], 2] = np.real(z)
+        branch_rec[i[k], 3] = np.imag(z)
+        idx_del = np.append(idx_del, range(i[k] + 1, i[k + 1] - 1))
 
-    # Link to the internal bus with shortest path
-    tf1 = np.isin(BranchRec[:, 0], BusTBD)
-    tf2 = np.isin(BranchRec[:, 1], BusTBD)
-    ind = np.where(tf1 & tf2)[0]
+    branch_rec = np.delete(branch_rec, idx_del, 0)
 
-    for k in ind:
-        pi = BranchRec[k, 0]
-        gi = BranchRec[k, 1]
+    # Convert the external gen network into a radial network by Zmin
+    gen_num = gen[:, 0]
+    tf = np.isin(gen_num, int_bus)
+    gen_num[tf == 1] = []
+    linked_bus = np.zeros(bus_no.shape)
+    linked_bra = np.zeros(bus_no.shape)
+    # Set up the levels
+    level = np.full(bus_no.shape, -1)
+    level[int_bus] = 0
+    # Set up the distance
+    dist = np.full(bus_no.shape, np.inf)
+    dist[int_bus] = 0
+    branch_z = np.sqrt(np.square(branch_rec[:, 3]) + np.square(branch_rec[:, 4]))
 
-        if Dist[gi] > BranchZ[k] + Dist[pi]:
-            Level[gi] = -1
-        elif Dist[pi] > BranchZ[k] + Dist[gi]:
-            Level[pi] = -1
+    bus_prev_layer = int_bus
+    bus_tbd = gen_num
 
-  # LinkedBus=0 -> islanded buses       LinkedBus=-1
-  LinkedBus[IntBus] = -1
-  islanded_Bus = BusNo[np.where(LinkedBus == 0)]
-  LinkedBus[np.where(LinkedBus == 0)] = 9999999
+    for lev in range(1000):
+        tf1 = np.isin(branch_rec[:, 0], bus_prev_layer)
+        tf2 = np.isin(branch_rec[:, 1], bus_tbd)
+        ind = np.where(tf1 & tf2)[0]
+        for k in ind:
+            pi = branch_rec[k, 0]
+            gi = branch_rec[k, 1]
+            if dist[gi] > branch_z[k] + dist[pi]:
+                dist[gi] = branch_z[k] + dist[pi]
+                linked_bus[gi] = pi
+                linked_bra[gi] = k
+                level[gi] = level[pi] + 1
 
-  for i in range(len(LinkedBus)):
-    if LinkedBus[i] == -1:
-      LinkedBus[i] = i
+        tf1 = np.isin(branch_rec[:, 1], bus_prev_layer)
+        tf2 = np.isin(branch_rec[:, 0], bus_tbd)
+        ind = np.where(tf1 & tf2)[0]
+        for k in ind:
+            pi = branch_rec[k, 1]
+            gi = branch_rec[k, 0]
+            if dist[gi] > branch_z[k] + dist[pi]:
+                dist[gi] = branch_z[k] + dist[pi]
+                linked_bus[gi] = pi
+                linked_bra[gi] = k
+                level[gi] = level[pi] + 1
 
-  BusNo = np.append(BusNo, 9999999)
-  NewBusNo = np.append(NewBusNo, 9999999)
-  islandflag = 1
-  if len(LinkedBus[LinkedBus == 9999999]) == 0:
-    islandflag = 0
-    LinkedBus = np.append(LinkedBus, 9999999)
+        # Link to the internal bus with shortest path
+        tf1 = np.isin(branch_rec[:, 0], bus_tbd)
+        tf2 = np.isin(branch_rec[:, 1], bus_tbd)
+        ind = np.where(tf1 & tf2)[0]
 
-  LinkedBus = np.interp(LinkedBus, NewBusNo, BusNo)  # all the buses in the system and its correponding bus in the reduced system
+        for k in ind:
+            pi = branch_rec[k, 0]
+            gi = branch_rec[k, 1]
 
-  NewGenBus = np.interp(mpcreduced_gen['gen'][:, 0], BusNo, LinkedBus)
-  if not islandflag:
-    LinkedBus = np.delete(LinkedBus, LinkedBus == 9999999)
-  Link = np.column_stack((mpcreduced_gen['bus'][:, 0], LinkedBus))
+            if dist[gi] > branch_z[k] + dist[pi]:
+                level[gi] = -1
+            elif dist[pi] > branch_z[k] + dist[gi]:
+                level[pi] = -1
 
-  return NewGenBus, Link
+    # LinkedBus=0 -> islanded buses       LinkedBus=-1
+    linked_bus[int_bus] = -1
+    islanded_bus = bus_no[np.where(linked_bus == 0)]
+    linked_bus[np.where(linked_bus == 0)] = 9999999
+
+    for i in range(len(linked_bus)):
+        if linked_bus[i] == -1:
+            linked_bus[i] = i
+
+    bus_no = np.append(bus_no, 9999999)
+    new_bus_no = np.append(new_bus_no, 9999999)
+    island_flag = 1
+    if len(linked_bus[linked_bus == 9999999]) == 0:
+        island_flag = 0
+        linked_bus = np.append(linked_bus, 9999999)
+
+    linked_bus = np.interp(linked_bus,
+                           new_bus_no,
+                           bus_no)  # all the buses in the system and its correponding bus in the reduced system
+
+    new_gen_bus = np.interp(mpcreduced_gen['gen'][:, 0], bus_no, linked_bus)
+
+    if not island_flag:
+        linked_bus = np.delete(linked_bus, linked_bus == 9999999)
+    link = np.column_stack((mpcreduced_gen['bus'][:, 0], linked_bus))
+
+    return new_gen_bus, link
 
 
 def map_bus(mpc, old_busnum, new_busnum):
