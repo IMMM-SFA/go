@@ -1012,14 +1012,33 @@ def initiation(mpc, ExBus):
     return NFROM, NTO, BraNum, LineB, ShuntB, BCIRC, BusNum, NUMB, SelfB, mpc, ExBus, newbusnum, oldbusnum
 
 
-def GenerateBCIRC(branch):
-  FTnum, m, n = np.unique(branch[:, [1,2]], axis=0, return_index=True)
-  n2 = np.unique(n)
-  BCIRC = np.zeros(branch.shape[0], dtype=np.int)
-  for i in range(len(n2)):
-    Ind = np.where(n == n2[i])[0]
-    BCIRC[Ind] = np.arange(1, len(Ind) + 1)
-  return BCIRC
+def generate_bcirc(branch):
+    """GenerateBCIRC is used to detect parallel lines and generate the circuit number of every branch.
+
+    Parameters
+    ----------
+    branch : matrix
+        Includes branch data in MATPOWER case format.
+
+    Returns
+    -------
+    BCIRC : n*1 vector
+        Includes branch circuit number.
+
+    Note
+    ----
+    For one branch, if its circuit number is greater than 1 then it is parallel to one of the branch whose circuit number is 1.
+    """
+
+    ft_num, m, n = np.unique(branch[:, [1, 2]], axis=0, return_index=True)
+    n2 = np.unique(n)
+    bcirc = np.zeros(branch.shape[0], dtype=np.int)
+
+    for i in range(len(n2)):
+        ind = np.where(n == n2[i])[0]
+        bcirc[ind] = np.arange(1, len(ind) + 1)
+
+    return bcirc
 
 
 def DoReduction(DataB,ERP,CIndx,ExBus,NUMB,dim,BCIRC,newbusnum,oldbusnum,mpc):
