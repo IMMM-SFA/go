@@ -981,36 +981,72 @@ def LoadRedistribution(mpcfull, mpcreduced, BCIRCr, Pf_flag):
     mpcreduced.bus[:,3] = P_L_should
     mpcreduced.gen = gen
 
-def initiation(mpc, ExBus):
+def initiation(mpc, ex_bus):
+    """Converts full model data in MATPOWER case format to generate the full model admittance matrix.
 
-    # sort the buses
+    Parameters
+    ----------
+    mpc : struct
+        Full model data in MATPOWER case format.
+    ExBus : n*1 vector
+        Includes indices of external buses.
+
+    Returns
+    -------
+    NFROM : 1*n array
+        Includes indices of all from end buses.
+    NTO : 1*n array
+        Includes indices of all to end buses.
+    BraNum : 1*n array
+        Includes indices of all branches.
+    LineB : 1*n array
+        Includes line admittance of branches.
+    ShuntB : 1*n array
+        Includes line shunt admittance of branches.
+    mpc : struct
+        Full model in MATPOWER case format.
+    ExBus : n*1 vector
+        Includes external bus indices.
+    newbusnum : 1*n array
+        Indices of buses in internal bus numbering.
+    oldbusnum : 1*n array
+        Indices of buses in original bus numbering.
+
+    Notes
+    -----
+    All output bus indices are in internal bus numbering.
+    """
+
+    # Sort the buses
     mpc['bus'] = np.sort(mpc['bus'], axis=0)
-    oldbusnum = mpc['bus'][:,0]
-    newbusnum = np.arange(1, len(mpc['bus'])+1)
-    # change the branch terminal bus number
-    mpc['branch'][:,0] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,0])
-    mpc['branch'][:,1] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,1])
-    mpc['gen'][:,0] = np.interp(oldbusnum, newbusnum, mpc['gen'][:,0])
-    ExBus = np.interp(oldbusnum, newbusnum, ExBus)
+    oldbusnum = mpc['bus'][:, 0]
+    newbusnum = np.arange(1, len(mpc['bus']) + 1)
 
-    # bus data
-    NUMB = newbusnum
-    BusNum = len(mpc['bus'])
-    SelfB = mpc['bus'][:,5] / mpc['baseMVA']
-    # branch data
-    BraNum = len(mpc['branch'])
-    NFROM = mpc['branch'][:,0]
-    NTO = mpc['branch'][:,1]
-    LineB = 1 / mpc['branch'][:,3] # calculate the branch susceptance (b)
-    ShuntB = mpc['branch'][:,4] / 2 # branch shunts
-    BCIRC = generate_bcirc(mpc['branch'])
-    # update SelfB
+    # Change the branch terminal bus number
+    mpc['branch'][:, 0] = np.interp(oldbusnum, newbusnum, mpc['branch'][:, 0])
+    mpc['branch'][:, 1] = np.interp(oldbusnum, newbusnum, mpc['branch'][:, 1])
+    mpc['gen'][:, 0] = np.interp(oldbusnum, newbusnum, mpc['gen'][:, 0])
+    ex_bus = np.interp(oldbusnum, newbusnum, ex_bus)
+
+    # Bus data
+    numb = newbusnum
+    bus_num = len(mpc['bus'])
+    self_b = mpc['bus'][:, 5] / mpc['baseMVA']
+
+    # Branch data
+    bra_num = len(mpc['branch'])
+    n_from = mpc['branch'][:, 0]
+    nto = mpc['branch'][:, 1]
+    line_b = 1 / mpc['branch'][:, 3]  # Calculate the branch susceptance (b)
+    shubt_b = mpc['branch'][:, 4] / 2  # Branch shunts
+    bcirc = generate_bcirc(mpc['branch'])
+
+    # Update SelfB
     for i in range(BraNum):
-        SelfB[NFROM[i]] += LineB[i] + ShuntB[i]
-        SelfB[NTO[i]] += LineB[i] + ShuntB[i]
+        self_b[n_from[i]] += line_b[i] + shubt_b[i]
+        self_b[nto[i]] += line_b[i] + shubt_b[i]
 
-    return NFROM, NTO, BraNum, LineB, ShuntB, BCIRC, BusNum, NUMB, SelfB, mpc, ExBus, newbusnum, oldbusnum
-
+    return n_from, nto, bra_num, line_b, shubt_b, bcirc, bus_num, numb, self_b, mpc, ex_bus, newbusnum, oldbusnum
 
 def generate_bcirc(branch):
     """GenerateBCIRC is used to detect parallel lines and generate the circuit number of every branch.
