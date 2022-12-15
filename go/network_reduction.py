@@ -874,112 +874,145 @@ def MakeMPCr(ERPEQ, DataEQ, CIndxEQ, ShuntData, ERP, DataB, ExBus, PivInd, PivOr
     return (mpcreduced, BCIRC, ExBus)
 
 
-def LoadRedistribution(mpcfull, mpcreduced, BCIRCr, Pf_flag):
-    if Pf_flag == 1:
+def load_redistribution(mpcfull, mpcreduced, bcircr, pf_flag):
+    """Subroutine LoadRedistribution moves loads in reduced model in order to
+    make the dcpf solution on reduced model identical to the full model with
+    external generator placed in subroutine MoveExGen.
+
+    Parameters
+    ----------
+    mpcfull : struct
+        Full model data in MATPOWER case format
+    mpcreduced : struct
+        Reduced model data with all external buses eliminated in MATPOWER case format
+    BCIRCr : 1*n array
+        Includes circuit number of branches in reduced model
+    Pf_flag : scalar
+        Indicates if dc power flow need to be solved before load redistribution
+
+    Returns
+    -------
+    mpcreduced : struct
+        Reduced model data with load redistributed
+    BCIRCr : 1*n array
+        Includes reordered branch circuit number in reduced model
+
+    Note
+    ----
+    The subroutine will first run a dc power flow on the full model. If the
+    dc power flow can not be solved on the full model, the subroutine will
+    be terminated and an error will be returned.
+    """
+
+    if pf_flag == 1:
         # OPT=mpoption('out.all',0);
-        [resultfull,successfull]=rundcpf(mpcfull)
-        if successfull == False:
-            raise ValueError('unable to solve dc powerflow with original full model, load cannot be redistributed')
+        resultfull, successfull = rundcpf(mpcfull)
+        if successfull == 0:
+            raise Exception('Unable to solve dc powerflow with original full model, load cannot be redistributed')
     else:
         resultfull = mpcfull
         successfull = 1
 
     # Read the full model bus data
     # [BusID, V_mag, V_angle
-    OrigBusRec = resultfull.bus[:,[1,8,9]]
-    OrigBusRec = np.sortrows(OrigBusRec,1) #reorder bus records
+    orig_bus_rec = resultfull['bus'][:, [1, 8, 9]]
+    orig_bus_rec = np.sort(orig_bus_rec, axis=0) # reorder bus records
 
     # Read Bus Data
-    BusRec = mpcreduced.bus
-    BusRec = np.sortrows(BusRec,1)
-    BusNo = BusRec[:,1]
+    bus_rec = mpcreduced['bus']
+    bus_rec = np.sort(bus_rec, axis=0)
+    bus_no = bus_rec[:, 1]
 
     # Use original bus voltage
-    ignore, ind = np.ismember(BusNo, OrigBusRec[:,1])
-    BusRec[:,8] = OrigBusRec[ind,2] # Vm
-    BusRec[:,9] = OrigBusRec[ind,3] # Vang
+    ind = np.in1d(bus_no, orig_bus_rec[:, 1])
+    bus_rec[:, 8] = orig_bus_rec[ind, 2] # Vm
+    bus_rec[:, 9] = orig_bus_rec[ind, 3] # Vang
 
     # Read Branch DATA
-    branchdata = mpcreduced.branch
-    branchdata = branchdata[branchdata[:,11] == 1, :]
-    BranchRec, braindex = np.sortrows(branchdata,[1,2])
+    branchdata = mpcreduced['branch']
+    branchdata = branchdata[np.where(branchdata[:, 11]==1)[0], :]
+    branchdata, braindex = np.sort(branchdata, axis=0, kind='mergesort')
+    branch_rec = branchdata
 
     # Renumber the branch terminal buses
-    Sbase = 100 #MVA
-    NewBusNo = np.arange(len(BusNo))
-    BusRec[:,1] = NewBusNo
-    BranchRec[:,1] = np.interp(BusNo, NewBusNo, BranchRec[:,1])
-    BranchRec[:,2] = np.interp(BusNo, NewBusNo, BranchRec[:,2])
+    sbase = 100 # MVA
+    new_bus_no = np.arange(1, len(bus_no)+1)
+    bus_rec[:, 1] = new_bus_no
+    branch_rec[:, 1] = np.interp(bus_no, new_bus_no, branch_rec[:, 1])
+    branch_rec[:, 2] = np.interp(bus_no, new_bus_no, branch_rec[:, 2])
 
-    # read phase shifter information
-    ind = np.where( np.abs(BranchRec[:,10]) )[0]
+    # Read phase shifter information
+    ind = np.where(abs(branch_rec[:, 10]))[0]
     flag = 0
     if len(ind) == 0:
         flag = 1
-        phase_shifter = BranchRec[ind,:]
+        phase_shifter = branch_rec[ind, :]
 
     # Form complex voltage vector
-    Bus_V_Mag_PU = BusRec[:,8]
-    Bus_V_Pha = BusRec[:,9]/180*np.pi
+    bus_v_mag_pu = bus_rec[:, 8]
+    bus_v_pha = bus_rec[:, 9]/180*np.pi
 
     # Form Y Matrix
-    BB = np.zeros((len(BusNo),len(BusNo)))
-    bb = BranchRec[:,4]
-    BranchRec[BranchRec[:,9] == 0, 9] = 1
-    bb = bb*(BranchRec[:,9]) # x/tap
+    bb = np.zeros((len(bus_no), len(bus_no)))
+    bb = branch_rec[:, 4]
+    branch_rec[np.where(branch_rec[:, 9]==0)[0], 9] = 1
+    bb = bb*(branch_rec[:, 9]) # x/tap
     bb = 1/bb
-    for i in range(len(BranchRec[:,4])):
-        m = BranchRec[i,1]
-        n = BranchRec[i,2]
+    for i in range(len(branch_rec[:, 4])):
+        m = branch_rec[i, 1]
+        n = branch_rec[i, 2]
 
-        BB[m,m] = BB[m,m] + bb[i]
-        BB[n,n] = BB[n,n] + bb[i]
+        bb[m, m] += bb[i]
+        bb[n, n] += bb[i]
 
-        BB[m,n] = BB[m,n] - bb[i]
-        BB[n,m] = BB[n,m] - bb[i]
+        bb[m, n] -= bb[i]
+        bb[n, m] -= bb[i]
 
-    P_injected2 = BB.dot(Bus_V_Pha)*Sbase
+    p_injected2 = bb*bus_v_pha*sbase
 
     if flag == 1:
         # phase_shifter
-        B_fix = np.zeros(len(BB[:,1]))
-        for i in range(len(phase_shifter[:,1])):
-            B_fix[ phase_shifter[i,1] ] = B_fix[ phase_shifter[i,1] ] - phase_shifter[i,10]*np.pi/180/phase_shifter[i,4]
-            B_fix[ phase_shifter[i,2] ] = B_fix[ phase_shifter[i,2] ] + phase_shifter[i,10]*np.pi/180/phase_shifter[i,4]
-        B_fix = B_fix*Sbase
+        b_fix = np.zeros((len(bb[:, 1]), 1))
+        for i in range(len(phase_shifter[:, 1])):
+            b_fix[phase_shifter[i, 1]] -= phase_shifter[i, 10]*np.pi/180/phase_shifter[i, 4]
+            b_fix[phase_shifter[i, 2]] += phase_shifter[i, 10]*np.pi/180/phase_shifter[i, 4]
+        b_fix = b_fix*sbase
 
-    gen = mpcreduced.gen
-    gen[:,2] = resultfull.gen[:,2] # use the full model solution
-    gen[:,1] = np.interp(BusNo, NewBusNo, gen[:,1])
-    Generation = np.zeros((mpcreduced.bus.shape[0],2))
-    Generation[:,1] = NewBusNo
-    for i in range(gen.shape[0]):
-        Generation[gen[i,1],2] = Generation[gen[i,1],2] + gen[i,2]
-    gen[:,1] = np.interp(NewBusNo, BusNo, gen[:,1])
+    gen = mpcreduced['gen']
+    gen[:, 2] = resultfull['gen'][:, 2] # use the full model solution
+    gen[:, 1] = np.interp(bus_no, new_bus_no, gen[:, 1])
+    generation = np.zeros((mpcreduced['bus'].shape[1], 2))
+    generation[:, 1] = new_bus_no
+    for i in range(gen.shape[1]):
+        generation[gen[i, 1], 2] += gen[i, 2]
+    gen[:, 1] = np.interp(new_bus_no, bus_no, gen[:, 1])
 
-    # fix the phase shifter
+    # Fix the phase shifter
     if flag == 1:
-        P_injected2 = P_injected2 + B_fix
+        p_injected2 += b_fix
 
-    P_L_should = Generation[:,2] - P_injected2
+    p_l_should = generation[:, 2]-p_injected2
 
     # dealing with HVDC lines
-    if 'dcline' in mpcreduced:
-        dcline = mpcfull.dcline
-        HVDC_Line = [dcline[:,1],dcline[:,2],dcline[:,4],dcline[:,5]]
-        HVDC_Line = np.sortrows(HVDC_Line,[1 2])
-        HVDC_Line[:,1] = np.interp(BusNo, NewBusNo, HVDC_Line[:,1])
-        HVDC_Line[:,2] = np.interp(BusNo, NewBusNo, HVDC_Line[:,2])
+    if "dcline" in mpcreduced.keys():
+        dcline = mpcfull['dcline']
+        hvdc_line = [dcline[:, 1], dcline[:, 2], dcline[:, 4], dcline[:, 5]]
+        hvdc_line = np.sort(hvdc_line, axis=0)
+        hvdc_line[:, 1] = np.interp(bus_no, new_bus_no, hvdc_line[:, 1])
+        hvdc_line[:, 2] = np.interp(bus_no, new_bus_no, hvdc_line[:, 2])
         # for HVDC lines if one bus of a line is isolated then the buses on the other end
         # of the line will be ignored in the inverse power flow program
-        for i in range(len(HVDC_Line[:,1])):
-            if (BusRec[HVDC_Line[i,1],2] != 4) and (BusRec[HVDC_Line[i,2],2] != 4):
-                P_L_should[HVDC_Line[i,1]] = P_L_should[HVDC_Line[i,1]] - HVDC_Line[i,3]
-                P_L_should[HVDC_Line[i,2]] = P_L_should[HVDC_Line[i,2]] + HVDC_Line[i,4] # YZ compensate HVDC line by adding/reducing the loads from the HVDC flows
+        for i in range(hvdc_line.shape[1]):
+            if (bus_rec[hvdc_line[i, 1], 2] != 4) and (bus_rec[hvdc_line[i, 2], 2] != 4):
+                p_l_should[hvdc_line[i, 1]] -= hvdc_line[i, 3]
+                p_l_should[hvdc_line[i, 2]] += hvdc_line[i, 4] # YZ compensate HVDC line by adding/reducing the loads from the HVDC flows
 
     # Plug in the results
-    mpcreduced.bus[:,3] = P_L_should
-    mpcreduced.gen = gen
+    mpcreduced['bus'][:, 3] = p_l_should
+    mpcreduced['gen'] = gen
+
+    return mpcreduced, bcircr
+
 
 def initiation(mpc, ex_bus):
     """Converts full model data in MATPOWER case format to generate the full model admittance matrix.
