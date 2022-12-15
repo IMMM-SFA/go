@@ -803,76 +803,133 @@ def MapBus(mpc, oldbusnum, newbusnum):
     return mpc
 
 
-def MakeMPCr(ERPEQ, DataEQ, CIndxEQ, ShuntData, ERP, DataB, ExBus, PivInd, PivOrd, BCIRC, newbusnum, oldbusnum, mpcfull, BoundBus):
-    ExLen = len(ExBus)
+def make_mpcr(erpeq, dataeq, cindxeq, shuntdata, erp, datab, exbus, pivind, pivord, bcirc,
+              newbusnum, oldbusnum, mpcfull, boundbus):
+    """Subroutine MakeMPCr generates the reduced model in MATPOWER case format
+    without generator placement and load redistribution.
+
+    Parameters
+    ----------
+    ERPEQ : 1*n array
+        End of row pointers of the equivalent lines.
+    DataEQ : 1*n array
+        Value of equivalent line reactance.
+    CIndxEQ : 1*n array
+        Column indices of equivalent lines.
+    ShuntData : 1*n array
+        Bus shunts data of all buses in the reduced model.
+    ERP : 1*n array
+        End of row pointer of the original full model bus admittance matrix.
+    DataB : 1*n array
+        Value of all non-zeros in the original full model bus admittance matrix.
+    ExBus : 1*n array
+        Indices of external buses.
+    PivOrd : 1*n array
+        Bus indices after pivotting.
+    PivInd : 1*n array
+        Bus ordering after pivotting.
+    BCIRC : 1*n array
+        Branch circuit number of the full model.
+    newbusnum : 1*n array
+        Internal bus indices.
+    oldbusnum : 1*n array
+        Original bus indices.
+    mpcfull : struct
+        The original full model.
+    BoundBus : 1*n array
+        Indices of boundary buses.
+
+    Returns
+    -------
+    mpcreduced : struct
+        The reduced model.
+    BCIRC : 1*n array
+        The branch circuit number of the reduced model.
+    ExBus : 1*n array
+        The external bus indices.
+
+    Note
+    ----
+    The output data of this subroutine will be converted to original indices.
+    """
+
+    exlen = len(exbus)
+
     # Create the reduced model case file
     mpcreduced = mpcfull
     branch = mpcreduced.branch
     bus = mpcreduced.bus
-    int_flag = np.ones(len(branch),1)
+    int_flag = np.ones(len(branch), 1)
+
     # delete all branches connect external buses
     # 1. eliminate all branches connecting external bus
     # check from bus
-    for i in range(ExLen):
-        tf = np.isin(branch[:,1],ExBus[i])
+    for i in range(exlen):
+        tf = np.isin(branch[:, 1], exbus[i])
         int_flag = int_flag * ~tf
+
     # check to bus
-    for i in range(ExLen):
-        tf = np.isin(branch[:,2],ExBus[i])
+    for i in range(exlen):
+        tf = np.isin(branch[:, 2], exbus[i])
         int_flag = int_flag * ~tf
-    branch[int_flag==0] = [] # delete all marked branches
-    BCIRC[int_flag==0] = []
+    branch[int_flag == 0] = []  # delete all marked branches
+    bcirc[int_flag == 0] = []
+
     # delete all external buses
-    for i in range(ExLen):
-        bus[bus[:,1]==ExBus[i], :] = []
+    for i in range(exlen):
+        bus[bus[:, 1] == exbus[i], :] = []
+
     # Generate data for equivalent branches
-    FromInd = np.zeros(len(CIndxEQ))
-    AddEqBranch = np.zeros((len(DataEQ), len(branch)))
-    for i in range(ExLen+1, len(ERPEQ)-1):
-        FromInd[ERPEQ[i]+1:ERPEQ[i+1]] = i
-    for i in range(len(CIndxEQ)):
-        AddEqBranch[i, [1,2,4]] = [PivInd[FromInd[i]], PivInd[CIndxEQ[i]], -DataEQ[i]]
-    AddEqBranch[:,6] = 99999 # RATEA
-    AddEqBranch[:,7] = 99999 # RATEB
-    AddEqBranch[:,8] = 99999 # RATEC
-    AddEqBranch[:,9] = 1 # tap
-    AddEqBranch[:,10] = 0 # phase shift
-    AddEqBranch[:,11] = 1 # status
-    AddEqBranch[:,12] = -360 # min angle
-    AddEqBranch[:,13] = 360
+    from_ind = np.zeros(len(cindxeq))
+    add_eq_branch = np.zeros((len(dataeq), len(branch)))
+    for i in range(exlen + 1, len(erpeq) - 1):
+        from_ind[erpeq[i] + 1:erpeq[i + 1]] = i
+    for i in range(len(cindxeq)):
+        add_eq_branch[i, [1, 2, 4]] = [pivind[from_ind[i]], pivind[cindxeq[i]], -dataeq[i]]
+    add_eq_branch[:, 6] = 99999  # RATEA
+    add_eq_branch[:, 7] = 99999  # RATEB
+    add_eq_branch[:, 8] = 99999  # RATEC
+    add_eq_branch[:, 9] = 1  # tap
+    add_eq_branch[:, 10] = 0  # phase shift
+    add_eq_branch[:, 11] = 1  # status
+    add_eq_branch[:, 12] = -360  # min angle
+    add_eq_branch[:, 13] = 360
+
     # generate circuit number
-    EqBCIRC = max(99, 10**(np.ceil(np.log10(max(BCIRC)-1)))-1)
-    AddEqBCIRC = np.ones(len(AddEqBranch),1)*EqBCIRC
-    branch = np.concatenate((branch, AddEqBranch))
-    BCIRC = np.concatenate((BCIRC, AddEqBCIRC))
+    eq_bcirc = max(99, 10**(np.ceil(np.log10(max(bcirc) - 1))) - 1)
+    add_eq_bcirc = np.ones(len(add_eq_branch), 1)*eq_bcirc
+    branch = np.concatenate((branch, add_eq_branch))
+    bcirc = np.concatenate((bcirc, add_eq_bcirc))
     mpcreduced.branch = branch
+
     # Calculate Bus Shunt
-    BusShunt = np.zeros((len(mpcfull.bus)-ExLen,2))
-    BusShunt[:,1] = np.arange(ExLen+1, len(mpcfull.bus))
-    BusShunt[:,2] = DataB[ERP[BusShunt[:,1]]+1] # add original diagonal element in Y matrix of the bus in;
-    BusShunt[:len(BoundBus),2] = BusShunt[:len(BoundBus),2] + ShuntData
+    bus_shunt = np.zeros((len(mpcfull.bus) - exlen, 2))
+    bus_shunt[:, 1] = np.arange(exlen + 1, len(mpcfull.bus))
+    bus_shunt[:, 2] = datab[erp[bus_shunt[:, 1]] + 1]  # add original diagonal element in Y matrix of the bus in;
+    bus_shunt[:len(boundbus), 2] = bus_shunt[:len(boundbus), 2] + shuntdata
     for i in range(len(branch)):
-        m = PivOrd[branch[i,1]] - ExLen
-        n = PivOrd[branch[i,2]] - ExLen
-        BusShunt[m,2] = BusShunt[m,2] - 1/branch[i,4]
-        BusShunt[n,2] = BusShunt[n,2] - 1/branch[i,4]
-    BusShunt[:,1] = PivInd[BusShunt[:,1]]
-    BusShunt[:,2] = BusShunt[:,2] * mpcfull.baseMVA
+        m = pivord[branch[i, 1]] - exlen
+        n = pivord[branch[i, 2]] - exlen
+        bus_shunt[m, 2] = bus_shunt[m, 2] - 1/branch[i, 4]
+        bus_shunt[n, 2] = bus_shunt[n, 2] - 1/branch[i, 4]
+    bus_shunt[:, 1] = pivind[bus_shunt[:, 1]]
+    bus_shunt[:, 2] = bus_shunt[:, 2] * mpcfull.baseMVA
+
     # Plug the shunts value into the case file
-    bus = np.sort(bus,axis=0)
-    BusShunt = np.sort(BusShunt,axis=0)
-    bus[:,6] = BusShunt[:,2]
+    bus = np.sort(bus, axis=0)
+    bus_shunt = np.sort(bus_shunt, axis=0)
+    bus[:, 6] = bus_shunt[:, 2]
     mpcreduced.bus = bus
+
     # covert all bus numbers back to original numbering
-    mpcreduced.branch[:,5] = 0 # all branch shunts are converted to bus shunts
-    mpcreduced.branch[:,1] = np.interp(mpcreduced.branch[:,1], newbusnum, oldbusnum)
-    mpcreduced.branch[:,2] = np.interp(mpcreduced.branch[:,2], newbusnum, oldbusnum)
-    mpcreduced.bus[:,1] = np.interp(mpcreduced.bus[:,1], newbusnum, oldbusnum)
-    ExBus = np.interp(ExBus, newbusnum, oldbusnum)
-    mpcreduced.gen[:,1] = np.interp(mpcreduced.gen[:,1], newbusnum, oldbusnum)
+    mpcreduced.branch[:, 5] = 0  # all branch shunts are converted to bus shunts
+    mpcreduced.branch[:, 1] = np.interp(mpcreduced.branch[:, 1], newbusnum, oldbusnum)
+    mpcreduced.branch[:, 2] = np.interp(mpcreduced.branch[:, 2], newbusnum, oldbusnum)
+    mpcreduced.bus[:, 1] = np.interp(mpcreduced.bus[:, 1], newbusnum, oldbusnum)
+    exbus = np.interp(exbus, newbusnum, oldbusnum)
+    mpcreduced.gen[:, 1] = np.interp(mpcreduced.gen[:, 1], newbusnum, oldbusnum)
 
-    return (mpcreduced, BCIRC, ExBus)
-
+    return mpcreduced, bcirc, exbus
 
 def load_redistribution(mpcfull, mpcreduced, bcircr, pf_flag):
     """Subroutine LoadRedistribution moves loads in reduced model in order to
