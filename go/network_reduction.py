@@ -1031,12 +1031,12 @@ def generate_bcirc(branch):
     """
 
     ft_num, m, n = np.unique(branch[:, [1, 2]], axis=0, return_index=True)
-    n2 = np.unique(n)
+    n2, counts = np.unique(n, return_counts=True)
     bcirc = np.zeros(branch.shape[0], dtype=np.int)
 
-    for i in range(len(n2)):
+    for i, count in enumerate(counts):
         ind = np.where(n == n2[i])[0]
-        bcirc[ind] = np.arange(1, len(ind) + 1)
+        bcirc[ind] = np.arange(1, count + 1)
 
     return bcirc
 
