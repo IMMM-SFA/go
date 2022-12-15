@@ -593,3 +593,517 @@ def partial_num_lu(c_indx, c_indx_u, data, dim, erp, erp_u, stop, erp_eq, c_indx
     return data_eq, data_shunt
 
 
+#### START HERE #####
+
+def mpreduction(mpc, exbusorig, pf_flag):
+    print('Reduction process start')
+    print('Preprocess data')
+    [mpc, exbusorig] = preprocessdata(mpc, exbusorig)
+    dim = np.size(mpc.bus, 1)
+    # check if dc terminals are external
+    if isfield(mpc, 'dcline'):
+        tf1 = np.in1d(mpc.dcline[:, 1], exbusorig)
+        tf2 = np.in1d(mpc.dcline[:, 2], exbusorig)
+        if (np.sum(tf1) + np.sum(tf2)) > 0:
+            error('not able to eliminate HVDC line terminals')
+    exbusorig = exbusorig.T
+    if ~np.empty(exbusorig):
+        print('\nConvert input data model')
+        [nfrom, nto, branum, lineb, shuntb, bcirc, busnum, numb, selfb, mpc, exbus, newbusnum, oldbusnum] = initiation(
+            mpc, exbusorig)  # ExBus with internal numbering
+        # Create data structure
+        print('\nCreating Y matrix of input full model')
+        [cindx, erp, datab] = buildymat(nfrom, nto, branum, lineb, bcirc, busnum, numb, selfb)
+        # Do Reduction
+        print('\nDo first round reduction eliminating all external buses')
+        [mpcreduced, bcircr, exbusr] = doreduction(datab, erp, cindx, exbus, numb, dim, bcirc, newbusnum, oldbusnum,
+                                                   mpc)  # ExBusr with original numbering
+        # Generate the second reduction with all retained buses and all generator
+        # buses mpcreduced_gen
+        # Create the ExBus_Gen to create the reduced model with all gens
+        tf = np.in1d(exbus, mpc.gen[:, 1])
+        exbusgen = exbus
+        exbusgen[tf == 1] = []  # delete all external buses with generators
+        tf = np.in1d(mpc.gen[:, 1], exbus)
+        print('\n%d external generators are to be placed' % len(tf(tf == 1)))
+        if ~np.empty(exbusgen):
+            print('\nDo second round reduction eliminating all external non-generator buses')
+            [mpcreduced_gen, bcirc_gen, exbusgen] = doreduction(datab, erp, cindx, exbusgen, numb, dim, bcirc,
+                                                                newbusnum, oldbusnum, mpc)
+        else:
+            mpcreduced_gen = mpc
+            mpcreduced_gen = mapbus(mpcreduced_gen, newbusnum, oldbusnum)
+            bcirc_gen = bcirc
+        # Move Generators
+        print('\nPlacing External generators')
+        [newgenbus, link] = moveexgen(mpcreduced_gen, exbusorig, exbusgen, bcirc_gen, 0)
+        mpcreduced.gen[:, 1] = newgenbus  # move all external generators
+        # Do Inverse PowerFlow
+        print('\nRedistribute loads')
+        mpc = mapbus(mpc, newbusnum, oldbusnum)
+        [mpcreduced, bcircr] = loadredistribution(mpc, mpcreduced, bcircr, pf_flag)
+    else:
+        mpcreduced = mpc
+        warning('No external buses, reduced model is same as full model')
+    # Delete large reactance equivalent branches
+    ind = np.where(np.abs(mpcreduced.branch[:, 4]) >= np.max(mpc.branch[:, 4]) * 10)
+    mpcreduced.branch[ind, :] = []
+    bcircr[ind] = []
+    # Print Results
+    print('\n**********Reduction Summary****************')
+    print('\n%d buses in reduced model' % np.size(mpcreduced.bus, 1))
+    print('\n%d branches in reduced model, including %d equivalent lines' % (
+    np.size(mpcreduced.branch, 1), len(bcircr(bcircr == max(bcircr)))))
+    print('\n%d generators in reduced model' % np.size(mpcreduced.gen, 1))
+    if isfield(mpcreduced, 'dcline'):
+        print('\n%d HVDC lines in reduced mode,' % np.size(mpcreduced.dcline, 1))
+    print('\n**********Generator Placement Results**************')
+    for i in range(np.size(link, 1)):
+        if link[i, 2] - link[i, 1] != 0:
+            print('\nExternal generator on bus %d is moved to %d' % (link[i, 1], link[i, 2]))
+    print('\n')
+
+    return mpcreduced, link, bcircr
+
+
+def moveExGen(mpcreduced_gen, ExBus, ExBusGen, BCIRC, acflag):
+  BranchRec = np.column_stack((mpcreduced_gen['branch'][:, [1,2]], BCIRC, mpcreduced_gen['branch'][:, [3,4]]))  # fnum,tnum,circuit,r,x
+  if acflag == 0:
+    BranchRec[:, 3] = 0  # for dc, ignore all resistance
+
+  # Read the bus data
+  BusNo = mpcreduced_gen['bus'][:, 1]
+
+  # Convert original bus number to new bus number
+  NewBusNo = np.arange(len(BusNo))
+  BusRec = np.column_stack((NewBusNo,))
+  BusRec = BusRec[BusRec[:, 0].argsort()]
+
+  tf = np.isin(ExBus, ExBusGen)
+  ExBus = ExBus[tf == 0]
+  ExBus = np.interp(ExBus, BusNo, NewBusNo)
+  tf = np.isin(BusRec[:, 0], ExBus)
+  IntBus = BusRec[tf == 0, 0]
+  BranchRec[:, :2] = np.interp(BranchRec[:, :2], BusNo, NewBusNo)
+  BranchRec = BranchRec[BranchRec[:, [0,1]].argsort(axis=1)]
+
+  Gen = mpcreduced_gen['gen']
+  Gen[:, 0] = np.interp(Gen[:, 0], BusNo, NewBusNo)
+  Gen = Gen[Gen[:, 0].argsort()]
+
+  # clear num txt
+  # Convert all parallel lines into single lines
+  ignore, I = np.unique(BranchRec[:, [0,1]], axis=0, return_index=True)  # return the first unique rows in BranchRec
+  idx = np.where(np.diff(I) != 1)[0]
+  idx_del = []
+  for k in idx:
+    z = complex(BranchRec[I[k], 3], BranchRec[I[k], 4])  # complex value of impedances
+    for kk in range(I[k]+1, I[k+1]):
+      z1 = complex(BranchRec[kk, 3], BranchRec[kk, 4])
+      z = 1 / (1/z + 1/z1)
+    BranchRec[I[k], 3] = np.real(z)
+    BranchRec[I[k], 4] = np.imag(z)
+    idx_del = np.append(idx_del, range(I[k]+1, I[k+1]))
+  BranchRec = np.delete(BranchRec, idx_del, 0)
+
+  # Convert the external gen network into a radial network by Zmin
+  GenNum = Gen[:, 0]
+  tf = np.isin(GenNum, IntBus)
+  GenNum[tf == 1] = []
+  LinkedBus = np.zeros(BusNo.shape)
+  LinkedBra = np.zeros(BusNo.shape)
+  # Set up the levels
+  Level = np.full(BusNo.shape, -1)
+  Level[IntBus] = 0
+  # Set up the distance
+  Dist = np.full(BusNo.shape, np.inf)
+  Dist[IntBus] = 0
+  BranchZ = np.sqrt(np.square(BranchRec[:, 3]) + np.square(BranchRec[:, 4]))
+
+  BusPrevLayer = IntBus
+  BusTBD = GenNum
+
+  for lev in range(1000):
+    tf1 = np.isin(BranchRec[:, 0], BusPrevLayer)
+    tf2 = np.isin(BranchRec[:, 1], BusTBD)
+    ind = np.where(tf1 & tf2)[0]
+    for k in ind:
+        pi = BranchRec[k, 0]
+        gi = BranchRec[k, 1]
+        if Dist[gi] > BranchZ[k] + Dist[pi]:
+            Dist[gi] = BranchZ[k] + Dist[pi]
+            LinkedBus[gi] = pi
+            LinkedBra[gi] = k
+            Level[gi] = Level[pi] + 1
+
+    tf1 = np.isin(BranchRec[:, 1], BusPrevLayer)
+    tf2 = np.isin(BranchRec[:, 0], BusTBD)
+    ind = np.where(tf1 & tf2)[0]
+    for k in ind:
+        pi = BranchRec[k, 1]
+        gi = BranchRec[k, 0]
+        if Dist[gi] > BranchZ[k] + Dist[pi]:
+            Dist[gi] = BranchZ[k] + Dist[pi]
+            LinkedBus[gi] = pi
+            LinkedBra[gi] = k
+            Level[gi] = Level[pi] + 1
+
+    # Link to the internal bus with shortest path
+    tf1 = np.isin(BranchRec[:, 0], BusTBD)
+    tf2 = np.isin(BranchRec[:, 1], BusTBD)
+    ind = np.where(tf1 & tf2)[0]
+
+    for k in ind:
+        pi = BranchRec[k, 0]
+        gi = BranchRec[k, 1]
+
+        if Dist[gi] > BranchZ[k] + Dist[pi]:
+            Level[gi] = -1
+        elif Dist[pi] > BranchZ[k] + Dist[gi]:
+            Level[pi] = -1
+
+  # LinkedBus=0 -> islanded buses       LinkedBus=-1
+  LinkedBus[IntBus] = -1
+  islanded_Bus = BusNo[np.where(LinkedBus == 0)]
+  LinkedBus[np.where(LinkedBus == 0)] = 9999999
+
+  for i in range(len(LinkedBus)):
+    if LinkedBus[i] == -1:
+      LinkedBus[i] = i
+
+  BusNo = np.append(BusNo, 9999999)
+  NewBusNo = np.append(NewBusNo, 9999999)
+  islandflag = 1
+  if len(LinkedBus[LinkedBus == 9999999]) == 0:
+    islandflag = 0
+    LinkedBus = np.append(LinkedBus, 9999999)
+
+  LinkedBus = np.interp(LinkedBus, NewBusNo, BusNo)  # all the buses in the system and its correponding bus in the reduced system
+
+  NewGenBus = np.interp(mpcreduced_gen['gen'][:, 0], BusNo, LinkedBus)
+  if not islandflag:
+    LinkedBus = np.delete(LinkedBus, LinkedBus == 9999999)
+  Link = np.column_stack((mpcreduced_gen['bus'][:, 0], LinkedBus))
+
+  return NewGenBus, Link
+
+
+def MapBus(mpc, oldbusnum, newbusnum):
+    # convert bus number
+    mpc['bus'][:,0] = np.interp(oldbusnum, newbusnum, mpc['bus'][:,0])
+    # convert branch terminal bus number
+    mpc['branch'][:,0] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,0])
+    mpc['branch'][:,1] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,1])
+    # convert generator bus number
+    mpc['gen'][:,0] = np.interp(oldbusnum, newbusnum, mpc['gen'][:,0])
+#     if 'dcline' in mpc:
+#         # convert hvdc line bus number
+#         mpc['dcline'][:,0] = np.interp(oldbusnum, newbusnum, mpc['dcline'][:,0])
+#         mpc['dcline'][:,1] = np.interp(oldbusnum, newbusnum, mpc['dcline'][:,1])
+    return mpc
+
+
+def MakeMPCr(ERPEQ, DataEQ, CIndxEQ, ShuntData, ERP, DataB, ExBus, PivInd, PivOrd, BCIRC, newbusnum, oldbusnum, mpcfull, BoundBus):
+    ExLen = len(ExBus)
+    # Create the reduced model case file
+    mpcreduced = mpcfull
+    branch = mpcreduced.branch
+    bus = mpcreduced.bus
+    int_flag = np.ones(len(branch),1)
+    # delete all branches connect external buses
+    # 1. eliminate all branches connecting external bus
+    # check from bus
+    for i in range(ExLen):
+        tf = np.isin(branch[:,1],ExBus[i])
+        int_flag = int_flag * ~tf
+    # check to bus
+    for i in range(ExLen):
+        tf = np.isin(branch[:,2],ExBus[i])
+        int_flag = int_flag * ~tf
+    branch[int_flag==0] = [] # delete all marked branches
+    BCIRC[int_flag==0] = []
+    # delete all external buses
+    for i in range(ExLen):
+        bus[bus[:,1]==ExBus[i], :] = []
+    # Generate data for equivalent branches
+    FromInd = np.zeros(len(CIndxEQ))
+    AddEqBranch = np.zeros((len(DataEQ), len(branch)))
+    for i in range(ExLen+1, len(ERPEQ)-1):
+        FromInd[ERPEQ[i]+1:ERPEQ[i+1]] = i
+    for i in range(len(CIndxEQ)):
+        AddEqBranch[i, [1,2,4]] = [PivInd[FromInd[i]], PivInd[CIndxEQ[i]], -DataEQ[i]]
+    AddEqBranch[:,6] = 99999 # RATEA
+    AddEqBranch[:,7] = 99999 # RATEB
+    AddEqBranch[:,8] = 99999 # RATEC
+    AddEqBranch[:,9] = 1 # tap
+    AddEqBranch[:,10] = 0 # phase shift
+    AddEqBranch[:,11] = 1 # status
+    AddEqBranch[:,12] = -360 # min angle
+    AddEqBranch[:,13] = 360
+    # generate circuit number
+    EqBCIRC = max(99, 10**(np.ceil(np.log10(max(BCIRC)-1)))-1)
+    AddEqBCIRC = np.ones(len(AddEqBranch),1)*EqBCIRC
+    branch = np.concatenate((branch, AddEqBranch))
+    BCIRC = np.concatenate((BCIRC, AddEqBCIRC))
+    mpcreduced.branch = branch
+    # Calculate Bus Shunt
+    BusShunt = np.zeros((len(mpcfull.bus)-ExLen,2))
+    BusShunt[:,1] = np.arange(ExLen+1, len(mpcfull.bus))
+    BusShunt[:,2] = DataB[ERP[BusShunt[:,1]]+1] # add original diagonal element in Y matrix of the bus in;
+    BusShunt[:len(BoundBus),2] = BusShunt[:len(BoundBus),2] + ShuntData
+    for i in range(len(branch)):
+        m = PivOrd[branch[i,1]] - ExLen
+        n = PivOrd[branch[i,2]] - ExLen
+        BusShunt[m,2] = BusShunt[m,2] - 1/branch[i,4]
+        BusShunt[n,2] = BusShunt[n,2] - 1/branch[i,4]
+    BusShunt[:,1] = PivInd[BusShunt[:,1]]
+    BusShunt[:,2] = BusShunt[:,2] * mpcfull.baseMVA
+    # Plug the shunts value into the case file
+    bus = np.sort(bus,axis=0)
+    BusShunt = np.sort(BusShunt,axis=0)
+    bus[:,6] = BusShunt[:,2]
+    mpcreduced.bus = bus
+    # covert all bus numbers back to original numbering
+    mpcreduced.branch[:,5] = 0 # all branch shunts are converted to bus shunts
+    mpcreduced.branch[:,1] = np.interp(mpcreduced.branch[:,1], newbusnum, oldbusnum)
+    mpcreduced.branch[:,2] = np.interp(mpcreduced.branch[:,2], newbusnum, oldbusnum)
+    mpcreduced.bus[:,1] = np.interp(mpcreduced.bus[:,1], newbusnum, oldbusnum)
+    ExBus = np.interp(ExBus, newbusnum, oldbusnum)
+    mpcreduced.gen[:,1] = np.interp(mpcreduced.gen[:,1], newbusnum, oldbusnum)
+
+    return (mpcreduced, BCIRC, ExBus)
+
+
+def LoadRedistribution(mpcfull, mpcreduced, BCIRCr, Pf_flag):
+    if Pf_flag == 1:
+        # OPT=mpoption('out.all',0);
+        [resultfull,successfull]=rundcpf(mpcfull)
+        if successfull == False:
+            raise ValueError('unable to solve dc powerflow with original full model, load cannot be redistributed')
+    else:
+        resultfull = mpcfull
+        successfull = 1
+
+    # Read the full model bus data
+    # [BusID, V_mag, V_angle
+    OrigBusRec = resultfull.bus[:,[1,8,9]]
+    OrigBusRec = np.sortrows(OrigBusRec,1) #reorder bus records
+
+    # Read Bus Data
+    BusRec = mpcreduced.bus
+    BusRec = np.sortrows(BusRec,1)
+    BusNo = BusRec[:,1]
+
+    # Use original bus voltage
+    ignore, ind = np.ismember(BusNo, OrigBusRec[:,1])
+    BusRec[:,8] = OrigBusRec[ind,2] # Vm
+    BusRec[:,9] = OrigBusRec[ind,3] # Vang
+
+    # Read Branch DATA
+    branchdata = mpcreduced.branch
+    branchdata = branchdata[branchdata[:,11] == 1, :]
+    BranchRec, braindex = np.sortrows(branchdata,[1,2])
+
+    # Renumber the branch terminal buses
+    Sbase = 100 #MVA
+    NewBusNo = np.arange(len(BusNo))
+    BusRec[:,1] = NewBusNo
+    BranchRec[:,1] = np.interp(BusNo, NewBusNo, BranchRec[:,1])
+    BranchRec[:,2] = np.interp(BusNo, NewBusNo, BranchRec[:,2])
+
+    # read phase shifter information
+    ind = np.where( np.abs(BranchRec[:,10]) )[0]
+    flag = 0
+    if len(ind) == 0:
+        flag = 1
+        phase_shifter = BranchRec[ind,:]
+
+    # Form complex voltage vector
+    Bus_V_Mag_PU = BusRec[:,8]
+    Bus_V_Pha = BusRec[:,9]/180*np.pi
+
+    # Form Y Matrix
+    BB = np.zeros((len(BusNo),len(BusNo)))
+    bb = BranchRec[:,4]
+    BranchRec[BranchRec[:,9] == 0, 9] = 1
+    bb = bb*(BranchRec[:,9]) # x/tap
+    bb = 1/bb
+    for i in range(len(BranchRec[:,4])):
+        m = BranchRec[i,1]
+        n = BranchRec[i,2]
+
+        BB[m,m] = BB[m,m] + bb[i]
+        BB[n,n] = BB[n,n] + bb[i]
+
+        BB[m,n] = BB[m,n] - bb[i]
+        BB[n,m] = BB[n,m] - bb[i]
+
+    P_injected2 = BB.dot(Bus_V_Pha)*Sbase
+
+    if flag == 1:
+        # phase_shifter
+        B_fix = np.zeros(len(BB[:,1]))
+        for i in range(len(phase_shifter[:,1])):
+            B_fix[ phase_shifter[i,1] ] = B_fix[ phase_shifter[i,1] ] - phase_shifter[i,10]*np.pi/180/phase_shifter[i,4]
+            B_fix[ phase_shifter[i,2] ] = B_fix[ phase_shifter[i,2] ] + phase_shifter[i,10]*np.pi/180/phase_shifter[i,4]
+        B_fix = B_fix*Sbase
+
+    gen = mpcreduced.gen
+    gen[:,2] = resultfull.gen[:,2] # use the full model solution
+    gen[:,1] = np.interp(BusNo, NewBusNo, gen[:,1])
+    Generation = np.zeros((mpcreduced.bus.shape[0],2))
+    Generation[:,1] = NewBusNo
+    for i in range(gen.shape[0]):
+        Generation[gen[i,1],2] = Generation[gen[i,1],2] + gen[i,2]
+    gen[:,1] = np.interp(NewBusNo, BusNo, gen[:,1])
+
+    # fix the phase shifter
+    if flag == 1:
+        P_injected2 = P_injected2 + B_fix
+
+    P_L_should = Generation[:,2] - P_injected2
+
+    # dealing with HVDC lines
+    if 'dcline' in mpcreduced:
+        dcline = mpcfull.dcline
+        HVDC_Line = [dcline[:,1],dcline[:,2],dcline[:,4],dcline[:,5]]
+        HVDC_Line = np.sortrows(HVDC_Line,[1 2])
+        HVDC_Line[:,1] = np.interp(BusNo, NewBusNo, HVDC_Line[:,1])
+        HVDC_Line[:,2] = np.interp(BusNo, NewBusNo, HVDC_Line[:,2])
+        # for HVDC lines if one bus of a line is isolated then the buses on the other end
+        # of the line will be ignored in the inverse power flow program
+        for i in range(len(HVDC_Line[:,1])):
+            if (BusRec[HVDC_Line[i,1],2] != 4) and (BusRec[HVDC_Line[i,2],2] != 4):
+                P_L_should[HVDC_Line[i,1]] = P_L_should[HVDC_Line[i,1]] - HVDC_Line[i,3]
+                P_L_should[HVDC_Line[i,2]] = P_L_should[HVDC_Line[i,2]] + HVDC_Line[i,4] # YZ compensate HVDC line by adding/reducing the loads from the HVDC flows
+
+    # Plug in the results
+    mpcreduced.bus[:,3] = P_L_should
+    mpcreduced.gen = gen
+
+def initiation(mpc, ExBus):
+
+    # sort the buses
+    mpc['bus'] = np.sort(mpc['bus'], axis=0)
+    oldbusnum = mpc['bus'][:,0]
+    newbusnum = np.arange(1, len(mpc['bus'])+1)
+    # change the branch terminal bus number
+    mpc['branch'][:,0] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,0])
+    mpc['branch'][:,1] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,1])
+    mpc['gen'][:,0] = np.interp(oldbusnum, newbusnum, mpc['gen'][:,0])
+    ExBus = np.interp(oldbusnum, newbusnum, ExBus)
+
+    # bus data
+    NUMB = newbusnum
+    BusNum = len(mpc['bus'])
+    SelfB = mpc['bus'][:,5] / mpc['baseMVA']
+    # branch data
+    BraNum = len(mpc['branch'])
+    NFROM = mpc['branch'][:,0]
+    NTO = mpc['branch'][:,1]
+    LineB = 1 / mpc['branch'][:,3] # calculate the branch susceptance (b)
+    ShuntB = mpc['branch'][:,4] / 2 # branch shunts
+    BCIRC = generate_bcirc(mpc['branch'])
+    # update SelfB
+    for i in range(BraNum):
+        SelfB[NFROM[i]] += LineB[i] + ShuntB[i]
+        SelfB[NTO[i]] += LineB[i] + ShuntB[i]
+
+    return NFROM, NTO, BraNum, LineB, ShuntB, BCIRC, BusNum, NUMB, SelfB, mpc, ExBus, newbusnum, oldbusnum
+
+
+def GenerateBCIRC(branch):
+  FTnum, m, n = np.unique(branch[:, [1,2]], axis=0, return_index=True)
+  n2 = np.unique(n)
+  BCIRC = np.zeros(branch.shape[0], dtype=np.int)
+  for i in range(len(n2)):
+    Ind = np.where(n == n2[i])[0]
+    BCIRC[Ind] = np.arange(1, len(Ind) + 1)
+  return BCIRC
+
+
+def DoReduction(DataB,ERP,CIndx,ExBus,NUMB,dim,BCIRC,newbusnum,oldbusnum,mpc):
+
+    # Define Boundary Buses
+    BoundBus = DefBoundary(mpc,ExBus)
+
+    # Do Pivot including Tinney One
+    DataB,ERP,CIndx,PivOrd,PivInd = PivotData(DataB,ERP,CIndx,ExBus,NUMB,BoundBus)
+
+    # Do LU factorization (Partial)
+    ERPU,CIndxU,ERPEQ,CIndxEQ = PartialSymLU(CIndx,ERP,dim,len(ExBus),BoundBus)
+    DataEQ,DataShunt = PartialNumLU (CIndx,CIndxU,DataB,dim,ERP,ERPU,len(ExBus),ERPEQ,CIndxEQ,BoundBus)
+
+    # Create the reduced model in MATPOWER format
+    mpcreduced,BCIRC,ExBus = MakeMPCr(ERPEQ,DataEQ,CIndxEQ,DataShunt,ERP,DataB,ExBus,PivInd,PivOrd,BCIRC,newbusnum,oldbusnum,mpc,BoundBus)
+
+    return mpcreduced,BCIRC,ExBus
+
+
+def DefBoundary(mpc, ExBus):
+    # Subroutine DefBoundary indentify the boundary buses in the given model
+    # mpc based on the list of external buses (ExBus).
+
+    # INPUT DATA:
+    #   mpc - struct, input system model in MATPOWER format
+    #   ExBus - 1*n array, includes external bus indices
+
+    # OUTPUT DATA:
+    #   BoundBus - 1*n array, Boundary bus indices
+
+    # Note:
+    #   Boundary buses are the retained buses directly connected to external
+    #   buses.
+
+    BoundBus = np.zeros(mpc.bus.shape[0], dtype=int)
+    ExFlag = BoundBus
+    ExFlag[ExBus] = 1
+
+    for i in range(mpc.branch.shape[0]):
+        m = mpc.branch[i,0]
+        n = mpc.branch[i,1]
+        if ExFlag[m] + ExFlag[n] < 2: # exclude external branch
+            if (ExFlag[m]*n + ExFlag[n]*m) != 0:
+                BoundBus[ExFlag[m]*n + ExFlag[n]*m] = 1
+
+    BoundBus = np.where(BoundBus == 1)[0]
+
+    return BoundBus
+
+
+def BuildYMat(NFROM, NTO, BraNum, LineB, BCIRC, BusNum, NUMB, SelfB):
+
+  # Initialization
+  ERP = np.arange(0, BusNum+1)
+
+  # Read the branch one by one
+  # First generate the ERP array
+  for i in range(BraNum):
+    if BCIRC[i] == 1:
+      ERP[NFROM[i]+1:BusNum+1] += 1
+      ERP[NTO[i]+1:BusNum+1] += 1
+
+  # Second generate the CIndx and Data array
+  DataB = np.zeros(ERP[BusNum+1])
+  CIndx = np.zeros(ERP[BusNum+1])
+  ICLP = ERP
+  ICLP = ICLP + 1
+  ICLP = np.delete(ICLP, BusNum+1)
+  ICLP = np.insert(ICLP, 0, 0)
+  CIndx[ICLP[1:BusNum+1]] = NUMB
+  ICLP[1:BusNum+1] += 1
+
+  for i in range(BraNum):
+    DataB[ICLP[np.array([NFROM[i]+1, NTO[i]+1])]] -= LineB[i]
+    if i < BraNum-1:
+      if BCIRC[i+1] == 1:
+        CIndx[ICLP[np.array([NFROM[i]+1, NTO[i]+1])]] = np.array([NTO[i], NFROM[i]])
+        ICLP[np.array([NFROM[i]+1, NTO[i]+1])] += 1
+    else:
+      CIndx[ICLP[np.array([NFROM[i]+1, NTO[i]+1])]] = np.array([NTO[i], NFROM[i]])
+
+  for i in range(BusNum):
+    DataB[ERP[NUMB[i]]+1] += SelfB[i]
+
+  return CIndx, ERP, DataB
+
