@@ -1,3 +1,15 @@
+"""The following code was translated from MATLAB into Python.
+
+The source code can be found here:  https://e4st.com/network-reduction-toolbox/
+
+Here is the citation for the original code:
+D. Shi, D. Shawhan, N. Li, D. J. Tylavsky, J. Taber, R. Zimmerman, “Optimal Generation Investment Planning: Part 1:
+Network Equivalents,” North American Power Symposium 2012 (electronic journal), September 2012, pgs. 6.
+http://dx.doi.org/10.1109/NAPS.2012.6336375
+
+"""
+
+
 import numpy as np
 
 
