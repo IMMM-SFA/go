@@ -788,18 +788,39 @@ def moveExGen(mpcreduced_gen, ExBus, ExBusGen, BCIRC, acflag):
   return NewGenBus, Link
 
 
-def MapBus(mpc, oldbusnum, newbusnum):
-    # convert bus number
-    mpc['bus'][:,0] = np.interp(oldbusnum, newbusnum, mpc['bus'][:,0])
-    # convert branch terminal bus number
-    mpc['branch'][:,0] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,0])
-    mpc['branch'][:,1] = np.interp(oldbusnum, newbusnum, mpc['branch'][:,1])
-    # convert generator bus number
-    mpc['gen'][:,0] = np.interp(oldbusnum, newbusnum, mpc['gen'][:,0])
-#     if 'dcline' in mpc:
-#         # convert hvdc line bus number
-#         mpc['dcline'][:,0] = np.interp(oldbusnum, newbusnum, mpc['dcline'][:,0])
-#         mpc['dcline'][:,1] = np.interp(oldbusnum, newbusnum, mpc['dcline'][:,1])
+def map_bus(mpc, old_busnum, new_busnum):
+    """Subroutine MapBus converts bus indices from oldbusnum to newbusnum.
+    The conversion will be done to fields including buses, branches, and generators.
+
+    Parameters
+    ----------
+    mpc : struct
+        Input model in MATPOWER format
+    oldbusnum : array
+        1*n array of the old bus indices which will be converted "from"
+    newbusnum : array
+        1*n array of the new bus indices which will be converted "to"
+
+    Returns
+    -------
+    mpc : struct
+        Output model in MATPOWER format with converted bus indices.
+    """
+    # Convert bus number
+    mpc['bus'][:, 0] = np.interp(old_busnum, new_busnum, mpc['bus'][:, 0])
+
+    # Convert branch terminal bus number
+    mpc['branch'][:, 0] = np.interp(old_busnum, new_busnum, mpc['branch'][:, 0])
+    mpc['branch'][:, 1] = np.interp(old_busnum, new_busnum, mpc['branch'][:, 1])
+
+    # Convert generator bus number
+    mpc['gen'][:, 0] = np.interp(old_busnum, new_busnum, mpc['gen'][:, 0])
+
+    # if 'dcline' in mpc:
+    #     # Convert hvdc line bus number
+    #     mpc['dcline'][:, 0] = np.interp(old_busnum, new_busnum, mpc['dcline'][:, 0])
+    #     mpc['dcline'][:, 1] = np.interp(old_busnum, new_busnum, mpc['dcline'][:, 1])
+
     return mpc
 
 
