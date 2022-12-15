@@ -1133,35 +1133,40 @@ def do_reduction(data_b, erp, c_indx, ex_bus, numb, dim, bcirc, new_bus_num, old
     return mpcreduced, bcirc, ex_bus
 
 
-def DefBoundary(mpc, ExBus):
-    # Subroutine DefBoundary indentify the boundary buses in the given model
-    # mpc based on the list of external buses (ExBus).
+def def_boundary(mpc, ex_bus):
+    """Identify the boundary buses in the given model, mpc, based on the list of external buses (ExBus).
 
-    # INPUT DATA:
-    #   mpc - struct, input system model in MATPOWER format
-    #   ExBus - 1*n array, includes external bus indices
+    Parameters
+    ----------
+    mpc : struct
+        Input system model in MATPOWER format
+    ExBus : array
+        1*n array, includes external bus indices
 
-    # OUTPUT DATA:
-    #   BoundBus - 1*n array, Boundary bus indices
+    Returns
+    -------
+    BoundBus : array
+        1*n array, Boundary bus indices
 
-    # Note:
-    #   Boundary buses are the retained buses directly connected to external
-    #   buses.
+    Note
+    ----
+    Boundary buses are the retained buses directly connected to external buses.
+    """
 
-    BoundBus = np.zeros(mpc.bus.shape[0], dtype=int)
-    ExFlag = BoundBus
-    ExFlag[ExBus] = 1
+    bound_bus = np.zeros(mpc.bus.shape[0], dtype=int)
+    ex_flag = bound_bus
+    ex_flag[ex_bus] = 1
 
     for i in range(mpc.branch.shape[0]):
-        m = mpc.branch[i,0]
-        n = mpc.branch[i,1]
-        if ExFlag[m] + ExFlag[n] < 2: # exclude external branch
-            if (ExFlag[m]*n + ExFlag[n]*m) != 0:
-                BoundBus[ExFlag[m]*n + ExFlag[n]*m] = 1
+        m = mpc.branch[i, 0]
+        n = mpc.branch[i, 1]
+        if ex_flag[m] + ex_flag[n] < 2:  # exclude external branch
+            if (ex_flag[m] * n + ex_flag[n] * m) != 0:
+                bound_bus[ex_flag[m] * n + ex_flag[n] * m] = 1
 
-    BoundBus = np.where(BoundBus == 1)[0]
+    bound_bus = np.where(bound_bus == 1)[0]
 
-    return BoundBus
+    return bound_bus
 
 
 def BuildYMat(NFROM, NTO, BraNum, LineB, BCIRC, BusNum, NUMB, SelfB):
