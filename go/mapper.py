@@ -529,6 +529,6 @@ def mapper(ba_file: str,
                                                                                                          df_BA_states,
                                                                                                          caps)
 
-    nodal_reduction(rts_list, keys, max_loads, non_zero, df_load,
+    nodal_reduction(rts_list, keys, caps, max_loads, non_zero, df_load,
                     filter_nodes, distance_threshold,
                     reduced_gen_buses, load_file, node_output_dir)

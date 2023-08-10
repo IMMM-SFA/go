@@ -11,6 +11,7 @@ http://dx.doi.org/10.1109/NAPS.2012.6336375
 
 
 import numpy as np
+import pandapower as pdp
 
 
 def tinney_one(erp, piv_ind, piv_ord, ex_bus):

@@ -1,3 +1,2 @@
-from .linear import LinearProgrammingModel
 
 
