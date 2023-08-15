@@ -1,3 +1,6 @@
+import logging
+from typing import Union
+
 import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
@@ -11,33 +14,40 @@ from go.west.linear import WestLinearMultiModel
 def west_linear_multi(
     config_file: str,
     solver_name: str = "appsi_highs",
-    n_days: str = 365,
+    solver_params: Union[None, dict] = None,
+    n_days: int = 365,
     **kwargs
 ):
     """
     This function runs the West Linear Multi Model.
 
-    Parameters:
-    -----------
-    config_file : str
-        The path to the configuration file.
-    solver_name : str, optional
-        The name of the solver to be used. Default is "appsi_highs".
-    n_days : str, optional
-        The number of days for which the model should be run. Default is 365.
-    **kwargs : 
-        Additional keyword arguments.
+    :param config_file:         The configuration file to use. If None, the default configuration is used.
+    :type config_file:          Union[str, None]
 
-    Returns:
-    --------
-    None
+    :param solver_name:         The solver to use.  Options are 'appsi_highs', 'gurobi', and 'cplex'
+                                Default: 'appsi_highs'
+    :type solver_name:          str
+
+    :param solver_params:       Parameter dictionary for the chosen solver to set options for the solver natively.
+    :type solver_params:        Union[None, dict]; Default None
+
+    :param n_days:              The number of days for which the model should be run. Default is 365.
+    :type n_days:               int
+
     """
+
+    logger = logging.getLogger(__name__)
+
+    logger.info("Prepare simulation")
 
     # read in config file
     config = configuration.generate_config(config_file=config_file, **kwargs)
 
     # instantiate go solver
-    opt = GoSolver(solver_name=solver_name).go_solver
+    opt = GoSolver(
+        solver_name=solver_name,
+        solver_params=solver_params
+    ).go_solver
 
     # read in input files to data frames
     df_generators = pd.read_csv(config.generator_parameters_file, header=0)
@@ -69,6 +79,8 @@ def west_linear_multi(
 
     # max here can be (1,365)
     for day in range(1, n_days + 1):
+
+        logger.info(f"Day {day}: Set up optimization")
 
         for z in instance.buses:
             # load Demand and Reserve time series data
@@ -212,14 +224,15 @@ def west_linear_multi(
                 instance.HorizonMustrunLimit[z, i] = max(0, instance.HorizonMustrunLimit[z, i].value - df_losses.loc[
                     (day - 1) * 24 + i, 'Nuclear_ovr_1000'] / len(nucs))
 
+        logger.info(f"Day {day}: Start optimization")
         result = opt.solve(instance,
                            tee=True,
                            symbolic_solver_labels=True,
                            load_solutions=False)
+        logger.info(f"Day {day}: Finished optimization")
 
+        logger.info(f"Day {day}: Processing optimization result")
         instance.solutions.load_from(result)
-
-        print('LP')
 
         for c in instance.component_objects(Constraint, active=True):
             cobject = getattr(instance, str(c))
@@ -307,7 +320,7 @@ def west_linear_multi(
                 instance.mwh[j, 0] = newval_1
                 instance.mwh[j, 0].fixed = True
 
-        print(f'Day {day} is finished.')
+        logging.info(f'Day {day} completed.')
 
     vlt_angle_pd = pd.DataFrame(vlt_angle, columns=('Node', 'Time', 'Value'))
     mwh_pd = pd.DataFrame(mwh, columns=('Generator', 'Type', 'Time', 'Value'))

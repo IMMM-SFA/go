@@ -1,3 +1,5 @@
+import logging
+
 import pandas as pd
 import numpy as np
 
@@ -11,16 +13,24 @@ def build_data_file(
         **kwargs
 ):
 
+    logger = logging.getLogger(__name__)
+
     # read in config file
     config = configuration.generate_config(config_file=config_file, **kwargs)
 
     # simulation hours
     simulation_hours = simulation_days * 24
 
+    logger.info(f"Simulation days: {simulation_days}")
+    logger.info(f"Simulation hours: {simulation_hours}")
+    logger.info(f"Planning horizon hours: {planning_horizon_hours}")
+
     # TransLoss = 0.075  ##transmission loss as a percent of generation
     # n1criterion = 0.75 ##maximum line-usage as a percent of line-capacity
     # res_margin = 0.15  ##minimum reserve as a percent of system demand
     # spin_margin = 0.50 ##minimum spinning reserve as a percent of total reserve
+
+    logger.info(f"Building data file")
 
     ######=================================================########
     ######               Segment A.2                       ########
@@ -490,4 +500,4 @@ def build_data_file(
                 f.write(z + '\t' + str(d + 1) + '\t' + str(df_fuel.loc[d, z]) + '\n')
         f.write(';\n\n')
 
-    print(f"Generated file: {config.dat_file}")
+    logger.info(f"Generated file: {config.dat_file}")

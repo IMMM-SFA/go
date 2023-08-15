@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from typing import Union
 
 import yaml
@@ -121,12 +122,20 @@ def generate_config(config_file: Union[str, None] = None, **kwargs) -> Config:
         A Config object with attributes set according to the configuration file.
     """
 
+    logger = logging.getLogger(__name__)
+
     if config_file is None:
-        return Config(**kwargs)
+        config = Config(**kwargs)
+
     else:
+        logger.info(f"Project configuration file:  {config_file}")
+
         config_dict = read_config_file(config_file)
-        return Config(**config_dict)
 
+        config = Config(**config_dict)
 
+    config_parts = config.__dict__
+    for i in config_parts.keys():
+        logger.info(f"{i} = {config_parts[i]}")
 
-
+    return config
