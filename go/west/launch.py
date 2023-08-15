@@ -3,7 +3,7 @@ import pandas as pd
 import pyomo.environ as pyo
 from pyomo.core import Constraint, Var
 
-import go.configuration as utils
+from go import configuration
 from go.solvers import GoSolver
 from go.west.linear import WestLinearMultiModel
 
@@ -34,7 +34,7 @@ def west_linear_multi(
     """
 
     # read in config file
-    config = utils.generate_config(config_file=config_file, **kwargs)
+    config = configuration.generate_config(config_file=config_file, **kwargs)
 
     # instantiate go solver
     opt = GoSolver(solver_name=solver_name).go_solver

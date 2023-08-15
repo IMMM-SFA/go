@@ -21,13 +21,13 @@ class Model:
         """
         Initialize the Model with the specified region, problem, and complexity.
 
-        :param region: The region for the model.
+        :param region: The region for the model. Either 'west', 'ercot', or 'east'
         :type region: str
 
-        :param problem: The problem for the model.
+        :param problem: The problem for the model. Either 'linear' or 'mip'
         :type problem: str
 
-        :param complexity: The complexity for the model.
+        :param complexity: The complexity for the model. Either 'simple' or 'multi'
         :type complexity: str
         """
         
