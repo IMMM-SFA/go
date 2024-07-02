@@ -131,7 +131,6 @@ def generate_config(config_file: Union[str, None] = None, **kwargs) -> Config:
         logger.info(f"Project configuration file:  {config_file}")
 
         config_dict = read_config_file(config_file)
-
         config = Config(**config_dict)
 
     config_parts = config.__dict__

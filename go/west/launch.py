@@ -8,7 +8,7 @@ from pyomo.core import Constraint, Var
 
 from go import configuration
 from go.solvers import GoSolver
-from go.west.linear import WestLinearMultiModel
+from go.west.linear import model_west_linear_multi
 
 
 def west_linear_multi(
@@ -58,8 +58,9 @@ def west_linear_multi(
     # extract nuclear
     nucs = df_thermal[df_thermal['Fuel'] == 'NUC (Nuclear)'].copy()
 
-    # instantiate solver
-    instance = WestLinearMultiModel.create_instance(config.dat_file)
+    # instantiate model
+    go_model = model_west_linear_multi()
+    instance = go_model.create_instance(config.dat_file)
     instance.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
 
     # Total number of hours in the operating horizon
@@ -320,11 +321,11 @@ def west_linear_multi(
                 instance.mwh[j, 0] = newval_1
                 instance.mwh[j, 0].fixed = True
 
-        logging.info(f'Day {day} completed.')
+        logger.info(f'Day {day} completed.')
 
     vlt_angle_pd = pd.DataFrame(vlt_angle, columns=('Node', 'Time', 'Value'))
     mwh_pd = pd.DataFrame(mwh, columns=('Generator', 'Type', 'Time', 'Value'))
-    slack_pd = pd.DataFrame(slack, columns=('Generator', 'Type', 'Time', 'Value'))
+    slack_pd = pd.DataFrame(slack, columns=('Node','Time','Value'))
     flow_pd = pd.DataFrame(flow, columns=('Line', 'Time', 'Value'))
     duals_pd = pd.DataFrame(duals, columns=('Bus', 'Time', 'Value'))
 

@@ -286,13 +286,12 @@ def build_data_file(
         ######=================================================########
         ######               Segment A.6                       ########
         ######=================================================########
-
-        ####### simulation period and horizon
-        f.write('param simulation_hours := %d;' % simulation_hours)
+        # simulation period and horizon
+        f.write('param SimHours := %d;' % simulation_hours)
         f.write('\n')
-        f.write('param simulation_days:= %d;' % simulation_days)
+        f.write('param SimDays:= %d;' % simulation_days)
         f.write('\n\n')
-        f.write('param planning_horizon_hours := %d;' % planning_horizon_hours)
+        f.write('param HorizonHours := %d;' % planning_horizon_hours)
         f.write('\n\n')
         # f.write('param TransLoss := %0.3f;' % TransLoss)
         # f.write('\n\n')
