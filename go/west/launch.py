@@ -1,6 +1,8 @@
 import logging
+import os
 from typing import Union
 
+import cloudpickle
 import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
@@ -16,6 +18,7 @@ def west_linear_multi(
     solver_name: str = "appsi_highs",
     solver_params: Union[None, dict] = None,
     n_days: int = 365,
+    restart_file: Union[None, str] = None,
     **kwargs
 ):
     """
@@ -31,8 +34,11 @@ def west_linear_multi(
     :param solver_params:       Parameter dictionary for the chosen solver to set options for the solver natively.
     :type solver_params:        Union[None, dict]; Default None
 
-    :param n_days:              The number of days for which the model should be run. Default is 365.
+    :param n_days:              The number of the day in the calendar year to process through. Default is 365.
     :type n_days:               int
+
+    :param restart_file:        Full path to cloudpickled restart file.
+    :type restart_file:         Union[None, str]; Default None
 
     """
 
@@ -43,12 +49,6 @@ def west_linear_multi(
     # read in config file
     config = configuration.generate_config(config_file=config_file, **kwargs)
 
-    # instantiate go solver
-    opt = GoSolver(
-        solver_name=solver_name,
-        solver_params=solver_params
-    ).go_solver
-
     # read in input files to data frames
     df_generators = pd.read_csv(config.generator_parameters_file, header=0)
     df_thermal = pd.read_csv(config.thermal_generators_file, header=0)
@@ -58,28 +58,73 @@ def west_linear_multi(
     # extract nuclear
     nucs = df_thermal[df_thermal['Fuel'] == 'NUC (Nuclear)'].copy()
 
-    # instantiate model
-    go_model = model_west_linear_multi()
-    instance = go_model.create_instance(config.dat_file)
-    instance.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
+    # instantiate go solver
+    opt = GoSolver(
+        solver_name=solver_name,
+        solver_params=solver_params
+    ).go_solver
 
-    # Total number of hours in the operating horizon
-    n_horizon_hours = instance.HorizonHours
+    # if a restart file has been provided, use it
+    if restart_file is None:
 
-    # Generator for hours 1..n
-    horizon_hours_series = range(1,  n_horizon_hours + 1)
+        start_day = 1
 
-    # Space to store results
-    mwh = []
-    on = []
-    switch = []
-    flow = []
-    slack = []
-    vlt_angle = []
-    duals = []
+        # instantiate model
+        go_model = model_west_linear_multi()
+        instance = go_model.create_instance(config.dat_file)
+        instance.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
 
-    # max here can be (1,365)
-    for day in range(1, n_days + 1):
+        # Total number of hours in the operating horizon
+        n_horizon_hours = instance.HorizonHours
+
+        # Generator for hours 1..n
+        horizon_hours_series = range(1,  n_horizon_hours + 1)
+
+        # store outputs
+        mwh = []
+        on = []
+        switch = []
+        flow = []
+        slack = []
+        vlt_angle = []
+        duals = []
+
+    else:
+
+        logger.info(f"Initializing with a user provided restart file: {restart_file}")
+
+        with open(restart_file, "rb") as f:
+            restart_protocol = cloudpickle.load(f)
+
+        instance = restart_protocol["model"]
+        mwh = restart_protocol["mwh"]
+        on = restart_protocol["on"]
+        switch = restart_protocol["switch"]
+        flow = restart_protocol["flow"]
+        slack = restart_protocol["slack"]
+        vlt_angle = restart_protocol["vlt_angle"]
+        duals = restart_protocol["duals"]
+
+        # make the start day one day ahead of the last day to solve
+        start_day = restart_protocol["day"] + 1
+
+        # Total number of hours in the operating horizon
+        n_horizon_hours = instance.HorizonHours
+
+        # Generator for hours 1..n
+        horizon_hours_series = range(1,  n_horizon_hours + 1)
+
+    # n_days is the number of the day in the calendar year to process through.  If the start day
+    # -- is greater than the calendar day being processed, the will be no days to process.
+    if n_days < start_day:
+        msg = (
+            f"n_days setting ({n_days}) must be >= to the start day ({start_day}). " + 
+            "n_days represents the number of the day in the calendar year to process through."
+        )
+        raise AssertionError(msg)
+
+    # max here can be (1, 365)
+    for day in range(start_day, n_days + 1):
 
         logger.info(f"Day {day}: Set up optimization")
 
@@ -226,10 +271,12 @@ def west_linear_multi(
                     (day - 1) * 24 + i, 'Nuclear_ovr_1000'] / len(nucs))
 
         logger.info(f"Day {day}: Start optimization")
+        
         result = opt.solve(instance,
                            tee=True,
                            symbolic_solver_labels=True,
                            load_solutions=False)
+                
         logger.info(f"Day {day}: Finished optimization")
 
         logger.info(f"Day {day}: Processing optimization result")
@@ -320,6 +367,33 @@ def west_linear_multi(
                     newval_1 = instance.mwh[j, 24].value
                 instance.mwh[j, 0] = newval_1
                 instance.mwh[j, 0].fixed = True
+
+        logger.info(f"Day {day}: Writing restart file")
+
+        restart_protocol = {
+            "model": instance,
+            "mwh": mwh,
+            "on": on,
+            "switch": switch,
+            "flow": flow,
+            "slack": slack,
+            "vlt_angle": vlt_angle,
+            "duals": duals,
+            "day": day,
+        }
+
+        # Where the new restart file will saved to; this will not overwrite the restart file
+        # -- passed in by the user unless they are the same path.  This gives the user the 
+        # -- ability to pass in a restart file from another model if needed.
+        local_restart_file = os.path.join(
+            config.restart_file_directory,
+            f"model_restart_file.pkl"
+        )
+
+        with open(local_restart_file, "wb") as f:
+            cloudpickle.dump(restart_protocol, f)
+
+        logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
 
         logger.info(f'Day {day} completed.')
 

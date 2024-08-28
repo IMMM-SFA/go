@@ -1,3 +1,4 @@
+import os
 import logging
 from typing import Union
 
@@ -24,7 +25,7 @@ class Model:
             problem: str,
             complexity: str,
             solver_name: str = "appsi_highs",
-            solver_params: Union[None, dict] = None
+            solver_params: Union[None, dict] = None,
     ):
         """
         Initialize the Model with the specified region, problem, and complexity.
@@ -68,12 +69,20 @@ class Model:
 
         self.solver_params = solver_params
 
-    def run(self, config_file: Union[str, None] = None, **kwargs):
+    def run(
+        self, 
+        config_file: Union[str, None] = None, 
+        restart_file: Union[None, str] = None,
+        **kwargs
+    ):
         """
         Run the GO model with a specified configuration.
 
         :param config_file: The configuration file to use. If None, the default configuration is used.
         :type config_file: Union[str, None]
+
+        :param restart_file:        Full path to cloudpickled restart file.
+        :type restart_file:         Union[None, str]; Default None
         
         :param kwargs: Additional keyword arguments to pass to the model.
         :type kwargs: dict
@@ -83,5 +92,6 @@ class Model:
             config_file=config_file,
             solver_name=self.solver_name,
             solver_params=self.solver_params,
+            restart_file=restart_file,
             **kwargs
         )
