@@ -102,20 +102,20 @@ def west_linear_multi(
         logger.info(f"Initializing with a user provided restart file: {restart_file}")
 
         with open(restart_file, "rb") as f:
-            restart_protocol = cloudpickle.load(f)
+            restart_data = cloudpickle.load(f)
 
-        instance = restart_protocol["model"]
-        mwh = restart_protocol["mwh"]
-        on = restart_protocol["on"]
-        switch = restart_protocol["switch"]
-        flow = restart_protocol["flow"]
-        slack = restart_protocol["slack"]
-        vlt_angle = restart_protocol["vlt_angle"]
-        duals = restart_protocol["duals"]
-        solver_parameters = restart_protocol["solver_parameters"]
+        instance = restart_data["model"]
+        mwh = restart_data["mwh"]
+        on = restart_data["on"]
+        switch = restart_data["switch"]
+        flow = restart_data["flow"]
+        slack = restart_data["slack"]
+        vlt_angle = restart_data["vlt_angle"]
+        duals = restart_data["duals"]
+        solver_parameters = restart_data["solver_parameters"]
 
         # make the start day one day ahead of the last day to solve
-        start_day = restart_protocol["day"] + 1
+        start_day = restart_data["day"] + 1
 
         # Total number of hours in the operating horizon
         n_horizon_hours = instance.HorizonHours
@@ -384,7 +384,7 @@ def west_linear_multi(
 
             logger.info(f"Day {day}: Writing restart file")
 
-            restart_protocol = {
+            restart_data = {
                 "model": instance,
                 "mwh": mwh,
                 "on": on,
@@ -406,7 +406,7 @@ def west_linear_multi(
             )
 
             with open(local_restart_file, "wb") as f:
-                cloudpickle.dump(restart_protocol, f)
+                cloudpickle.dump(restart_data, f)
 
             logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
 
