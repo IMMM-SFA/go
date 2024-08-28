@@ -15,9 +15,39 @@ def load_solver_parameters(
 
     :return: Dictionary of solver parameters with integer keys.
     :rtype: dict
+
+    Example:
+    --------
+    >>> params = load_solver_parameters('path/to/solver_parameters.json')
+    >>> print(params)
+    {1: 'value1', 2: 'value2', 3: 'value3'}
     """
     with open(solver_parameter_file) as json_file:
         data = json.load(json_file)
 
         # convert keys back to integers so they can be referenced
         return {int(k): v for k, v in data.items()}
+
+
+def write_solver_parameters(
+    solver_parameter_dictionary: dict,
+    solver_parameter_file: str,
+    indent: int = 4,
+):
+    """
+    Write solver parameters to a JSON file.
+
+    This function writes a dictionary of solver parameters to a specified JSON file 
+    with a given indentation level.
+
+    :param solver_parameter_dictionary: Dictionary containing solver parameters.
+    :type solver_parameter_dictionary: dict
+
+    :param solver_parameter_file: Path to the JSON file where solver parameters will be written.
+    :type solver_parameter_file: str
+
+    :param indent: Indentation level for the JSON file. Default is 4.
+    :type indent: int
+    """
+    with open(solver_parameter_file, 'w') as json_file:
+        json.dump(solver_parameter_dictionary, json_file, indent=indent)
