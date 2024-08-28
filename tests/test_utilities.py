@@ -31,5 +31,6 @@ class TestLoadSolverParameters(unittest.TestCase):
             with self.assertRaises(json.JSONDecodeError):
                 load_solver_parameters("dummy_path")
 
+
 if __name__ == "__main__":
     unittest.main()

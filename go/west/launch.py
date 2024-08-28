@@ -11,6 +11,7 @@ from pyomo.core import Constraint, Var
 from go import configuration
 from go.solvers import GoSolver
 from go.west.linear import model_west_linear_multi
+from go.utilities import write_solver_parameters
 
 
 def west_linear_multi(
@@ -424,4 +425,8 @@ def west_linear_multi(
     flow_pd.to_parquet(config.flow_file, index=False)
     duals_pd.to_parquet(config.duals_file, index=False)
 
-
+    # write out the solver parameters as a JSON file
+    write_solver_parameters(
+        solver_parameter_dictionary=solver_parameters,
+        solver_parameter_file=os.path.join(config.restart_file_directory, "solver_parameters.json")
+    )
