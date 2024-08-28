@@ -93,6 +93,9 @@ def west_linear_multi(
         vlt_angle = []
         duals = []
 
+        # storing solver parameters
+        solver_parameters = {}
+
     else:
 
         logger.info(f"Initializing with a user provided restart file: {restart_file}")
@@ -108,6 +111,7 @@ def west_linear_multi(
         slack = restart_protocol["slack"]
         vlt_angle = restart_protocol["vlt_angle"]
         duals = restart_protocol["duals"]
+        solver_parameters = restart_protocol["solver_parameters"]
 
         # make the start day one day ahead of the last day to solve
         start_day = restart_protocol["day"] + 1
@@ -131,6 +135,9 @@ def west_linear_multi(
     for day in range(start_day, n_days + 1):
 
         logger.info(f"Day {day}: Set up optimization")
+
+        # store the solver parameters for the current day
+        solver_parameters[f"day_{day}"] = solver_params
 
         for z in instance.buses:
             # load Demand and Reserve time series data
@@ -386,6 +393,7 @@ def west_linear_multi(
                 "vlt_angle": vlt_angle,
                 "duals": duals,
                 "day": day,
+                "solver_parameters": solver_parameters
             }
 
             # Where the new restart file will saved to; this will not overwrite the restart file
