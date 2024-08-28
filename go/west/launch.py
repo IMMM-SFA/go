@@ -19,6 +19,7 @@ def west_linear_multi(
     solver_params: Union[None, dict] = None,
     n_days: int = 365,
     restart_file: Union[None, str] = None,
+    save_restart_file: bool = True,
     **kwargs
 ):
     """
@@ -34,11 +35,14 @@ def west_linear_multi(
     :param solver_params:       Parameter dictionary for the chosen solver to set options for the solver natively.
     :type solver_params:        Union[None, dict]; Default None
 
-    :param n_days:              The number of the day in the calendar year to process through. Default is 365.
-    :type n_days:               int
+    :param n_days:              The number of the day in the calendar year to process through.
+    :type n_days:               int; Default 365
 
     :param restart_file:        Full path to cloudpickled restart file.
     :type restart_file:         Union[None, str]; Default None
+
+    :param save_restart_file:   If True, save a restart file after ever timestep. Default True
+    :type save_restart_file:    bool; Defualt True
 
     """
 
@@ -368,32 +372,34 @@ def west_linear_multi(
                 instance.mwh[j, 0] = newval_1
                 instance.mwh[j, 0].fixed = True
 
-        logger.info(f"Day {day}: Writing restart file")
+        if save_restart_file:
 
-        restart_protocol = {
-            "model": instance,
-            "mwh": mwh,
-            "on": on,
-            "switch": switch,
-            "flow": flow,
-            "slack": slack,
-            "vlt_angle": vlt_angle,
-            "duals": duals,
-            "day": day,
-        }
+            logger.info(f"Day {day}: Writing restart file")
 
-        # Where the new restart file will saved to; this will not overwrite the restart file
-        # -- passed in by the user unless they are the same path.  This gives the user the 
-        # -- ability to pass in a restart file from another model if needed.
-        local_restart_file = os.path.join(
-            config.restart_file_directory,
-            f"model_restart_file.pkl"
-        )
+            restart_protocol = {
+                "model": instance,
+                "mwh": mwh,
+                "on": on,
+                "switch": switch,
+                "flow": flow,
+                "slack": slack,
+                "vlt_angle": vlt_angle,
+                "duals": duals,
+                "day": day,
+            }
 
-        with open(local_restart_file, "wb") as f:
-            cloudpickle.dump(restart_protocol, f)
+            # Where the new restart file will saved to; this will not overwrite the restart file
+            # -- passed in by the user unless they are the same path.  This gives the user the 
+            # -- ability to pass in a restart file from another model if needed.
+            local_restart_file = os.path.join(
+                config.restart_file_directory,
+                f"model_restart_file.pkl"
+            )
 
-        logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
+            with open(local_restart_file, "wb") as f:
+                cloudpickle.dump(restart_protocol, f)
+
+            logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
 
         logger.info(f'Day {day} completed.')
 
@@ -409,3 +415,5 @@ def west_linear_multi(
     slack_pd.to_parquet(config.slack_file, index=False)
     flow_pd.to_parquet(config.flow_file, index=False)
     duals_pd.to_parquet(config.duals_file, index=False)
+
+
