@@ -137,7 +137,7 @@ def west_linear_multi(
         logger.info(f"Day {day}: Set up optimization")
 
         # store the solver parameters for the current day
-        solver_parameters[f"day_{day}"] = solver_params
+        solver_parameters[day] = solver_params
 
         for z in instance.buses:
             # load Demand and Reserve time series data
