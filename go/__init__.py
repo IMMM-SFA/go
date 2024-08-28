@@ -8,6 +8,7 @@ from .ercot import *
 from .configuration import *
 from .preprocessor import *
 from .model import Model
+from .utilities import *
 
 
 __version__ = "0.2.0"
