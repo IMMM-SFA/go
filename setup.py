@@ -35,6 +35,9 @@ setup(
         'requests>=2.25.1',
         'pyomo>=6.0.1',
         'cloudpickle>=3.0.0',
+        'pyarrow>=17.0.0',
+        'numpy>=1.26.4,<2',
+        'pandas>=2.2.2',
     ],
     extras_require={
         'dev': [
