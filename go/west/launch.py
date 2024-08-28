@@ -290,6 +290,8 @@ def west_linear_multi(
             symbolic_solver_labels=True,
             load_solutions=False
         )
+
+        # ensure that the solver termination condition is optimal
         if result.solver.termination_condition != pyo.TerminationCondition.optimal:
             logger.error(f"Day {day}: Optimization did not converge to an optimal solution. Termination condition: {result.solver.termination_condition}")
             raise RuntimeError(f"Optimization failed on day {day} with termination condition: {result.solver.termination_condition}")
@@ -435,3 +437,5 @@ def west_linear_multi(
         solver_parameter_dictionary=solver_parameters,
         solver_parameter_file=os.path.join(config.restart_file_directory, "solver_parameters.json")
     )
+
+    return day
