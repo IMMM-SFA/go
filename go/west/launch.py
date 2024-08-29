@@ -335,6 +335,16 @@ def west_linear_multi(
         # ensure that the solver termination condition is optimal
         if result.solver.termination_condition != pyo.TerminationCondition.optimal:
             logger.error(f"Day {day}: Optimization did not converge to an optimal solution. Termination condition: {result.solver.termination_condition}")
+            
+            if save_restart_file:
+
+                logger.info(f"Day {day}: Writing restart file")
+
+                with open(local_restart_file, "wb") as f:
+                    cloudpickle.dump(restart_data, f)
+
+                logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
+
             raise RuntimeError(f"Optimization failed on day {day} with termination condition: {result.solver.termination_condition}")
 
         logger.info(f"Day {day}: Finished optimization")
@@ -430,8 +440,6 @@ def west_linear_multi(
 
         if save_restart_file:
 
-            logger.info(f"Day {day}: Writing restart file")
-
             restart_data = {
                 "model": instance,
                 "mwh": mwh,
@@ -444,11 +452,6 @@ def west_linear_multi(
                 "day": day,
                 "solver_parameters": solver_parameters
             }
-
-            with open(local_restart_file, "wb") as f:
-                cloudpickle.dump(restart_data, f)
-
-            logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
 
         logger.info(f'Day {day} completed.')
 
