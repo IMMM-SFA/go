@@ -22,6 +22,7 @@ def west_linear_multi(
     restart_file: Union[None, str] = None,
     save_restart_file: bool = True,
     break_run: bool = False,
+    reset_restart_file: bool = False,
     **kwargs
 ):
     """
@@ -56,6 +57,11 @@ def west_linear_multi(
                                 Default False
     :type break_run:            bool
 
+    :param reset_restart_file:  If True, any existing restart file will be deleted.  This is usualy used if the user wants
+                                to start from day 1 but has already done a few runs and thus generated a restart file.
+                                Default False
+    :type reset_restart_file:   bool
+
     """
 
     logger = logging.getLogger(__name__)
@@ -87,6 +93,14 @@ def west_linear_multi(
         config.restart_file_directory,
         f"model_restart_file.pkl"
     )
+
+    if reset_restart_file:
+        try:
+            os.remove(local_restart_file)
+            logger.info(f"Deleted existing restart file {local_restart_file}")
+        except PermissionError:
+            logger.error(f"Permission denied: Unable to delete the restart file {local_restart_file}")
+            raise PermissionError(f"Permission denied: Unable to delete the restart file {local_restart_file}")
 
     # if a restart file is provided or exists then use it
     if restart_file is None and os.path.exists(local_restart_file):

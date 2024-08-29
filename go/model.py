@@ -1,5 +1,6 @@
 import itertools
 import logging
+import os
 from typing import Union, List
 
 import numpy as np
@@ -368,6 +369,7 @@ class Model:
                         "dual_feasibility_tolerance": combo[1],
                         "primal_feasibility_tolerance": combo[2],
                         "ipm_optimality_tolerance": combo[3],
+                        # "time_limit": 3600,
                     })
 
             elif solver == "pdlp":
@@ -459,6 +461,7 @@ class Model:
         self, 
         config_file: Union[str, None] = None, 
         restart_file: Union[None, str] = None,
+        reset_restart_file: bool = False,
         n_days: int = 365,
         allow_retry: bool = True,
         retry_n_seeds: int = 1,
@@ -491,6 +494,11 @@ class Model:
                                                             in the restart_file_directory specified by the user in the configuration file.
                                                             Default None
         :type restart_file:                                 Union[None, str]
+
+        :param reset_restart_file:                          If True, any existing restart file will be deleted.  This is usualy used if the user wants
+                                                            to start from day 1 but has already done a few runs and thus generated a restart file.
+                                                            Default False
+        :type reset_restart_file:                           bool
 
         :param n_days:                                      The number of the day in the calendar year to process through.
                                                             Default 365       
@@ -716,6 +724,7 @@ class Model:
                 solver_params=self.solver_params,
                 restart_file=restart_file,
                 n_days=n_days,
+                reset_restart_file=reset_restart_file,
                 **kwargs
             )
 
