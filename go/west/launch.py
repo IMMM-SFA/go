@@ -343,7 +343,7 @@ def west_linear_multi(
                 with open(local_restart_file, "wb") as f:
                     cloudpickle.dump(restart_data, f)
 
-                logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
+                logger.info(f'Day {restart_data["day"]}: Restart file written to {local_restart_file}.')
 
             raise RuntimeError(f"Optimization failed on day {day} with termination condition: {result.solver.termination_condition}")
 
