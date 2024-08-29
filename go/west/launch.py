@@ -21,6 +21,7 @@ def west_linear_multi(
     n_days: int = 365,
     restart_file: Union[None, str] = None,
     save_restart_file: bool = True,
+    break_run: bool = False,
     **kwargs
 ):
     """
@@ -34,16 +35,25 @@ def west_linear_multi(
     :type solver_name:          str
 
     :param solver_params:       Parameter dictionary for the chosen solver to set options for the solver natively.
-    :type solver_params:        Union[None, dict]; Default None
+                                Default None
+    :type solver_params:        Union[None, dict]
 
     :param n_days:              The number of the day in the calendar year to process through.
-    :type n_days:               int; Default 365
+                                Default 365
+    :type n_days:               int
 
     :param restart_file:        Full path to cloudpickled restart file.
-    :type restart_file:         Union[None, str]; Default None
+                                Default None
+    :type restart_file:         Union[None, str]
 
-    :param save_restart_file:   If True, save a restart file after ever timestep. Default True
-    :type save_restart_file:    bool; Defualt True
+    :param save_restart_file:   If True, save a restart file after ever timestep. 
+                                Default True
+    :type save_restart_file:    bool
+
+    :param break_run:           If True, run will break after one day iteration.  This is only called if the 
+                                SOLVER RETRY MODE is initiated.
+                                Default False
+    :type break_run:            bool
 
     """
 
@@ -418,6 +428,12 @@ def west_linear_multi(
             logger.info(f'Day {day}: Restart file written to {local_restart_file}.')
 
         logger.info(f'Day {day} completed.')
+
+        # if only one iteration is desired break the loop
+        # -- this is only set to True when the model cannot solve and 
+        # -- the SOLVER RETRY MODE is activated.
+        if break_run:
+            break
 
     vlt_angle_pd = pd.DataFrame(vlt_angle, columns=('Node', 'Time', 'Value'))
     mwh_pd = pd.DataFrame(mwh, columns=('Generator', 'Type', 'Time', 'Value'))
