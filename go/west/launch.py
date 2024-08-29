@@ -126,7 +126,7 @@ def west_linear_multi(
 
     else:
 
-        logger.info(f"Initializing with a user provided restart file: {restart_file}")
+        logger.info(f"Initializing with the following restart file: {restart_file}")
 
         with open(restart_file, "rb") as f:
             restart_data = cloudpickle.load(f)
