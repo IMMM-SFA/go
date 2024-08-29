@@ -42,7 +42,8 @@ def west_linear_multi(
                                 Default 365
     :type n_days:               int
 
-    :param restart_file:        Full path to cloudpickled restart file.
+    :param restart_file:        Full path to cloudpickled restart file.  If no file is provided, the model will search for one
+                                in the restart_file_directory specified by the user in the configuration file.
                                 Default None
     :type restart_file:         Union[None, str]
 
@@ -79,7 +80,23 @@ def west_linear_multi(
         solver_params=solver_params
     ).go_solver
 
-    # if a restart file has been provided, use it
+    # Where the new restart file will saved to; this will not overwrite the restart file
+    # -- passed in by the user unless they are the same path.  This gives the user the 
+    # -- ability to pass in a restart file from another model if needed.
+    local_restart_file = os.path.join(
+        config.restart_file_directory,
+        f"model_restart_file.pkl"
+    )
+
+    # if a restart file is provided or exists then use it
+    if restart_file is None and os.path.exists(local_restart_file):
+        restart_file = local_restart_file
+    elif restart_file is None and os.path.exists(local_restart_file) is False:
+        restart_file = None 
+    else:
+        restart_file = restart_file
+
+    # start from scratch if no restart file has been provided or previously created
     if restart_file is None:
 
         start_day = 1
@@ -413,14 +430,6 @@ def west_linear_multi(
                 "day": day,
                 "solver_parameters": solver_parameters
             }
-
-            # Where the new restart file will saved to; this will not overwrite the restart file
-            # -- passed in by the user unless they are the same path.  This gives the user the 
-            # -- ability to pass in a restart file from another model if needed.
-            local_restart_file = os.path.join(
-                config.restart_file_directory,
-                f"model_restart_file.pkl"
-            )
 
             with open(local_restart_file, "wb") as f:
                 cloudpickle.dump(restart_data, f)

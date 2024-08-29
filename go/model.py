@@ -102,7 +102,9 @@ class Model:
         :param config_file:                                 Path to the configuration file. Default is None.
         :type config_file:                                  Union[str, None]
 
-        :param restart_file:                                Path to the restart file. Default is None.
+        :param restart_file:                                Full path to cloudpickled restart file.  If no file is provided, the model will search for one
+                                                            in the restart_file_directory specified by the user in the configuration file.
+                                                            Default None
         :type restart_file:                                 Union[None, str]
 
         :param n_days:                                      The number of the day in the calendar year to process through.
@@ -458,6 +460,7 @@ class Model:
         config_file: Union[str, None] = None, 
         restart_file: Union[None, str] = None,
         n_days: int = 365,
+        allow_retry: bool = True,
         retry_n_seeds: int = 1,
         retry_solver_list: List[str] = ["simplex", "ipm", "pldp"],
         retry_dual_feasibility_tolerance_list: List[float] = [1e-07, 1e-06],
@@ -484,11 +487,20 @@ class Model:
         :param config_file: The configuration file to use. If None, the default configuration is used.
         :type config_file: Union[str, None]
 
-        :param restart_file:        Full path to cloudpickled restart file.
-        :type restart_file:         Union[None, str]; Default None
+        :param restart_file:                                Full path to cloudpickled restart file.  If no file is provided, the model will search for one
+                                                            in the restart_file_directory specified by the user in the configuration file.
+                                                            Default None
+        :type restart_file:                                 Union[None, str]
 
-        :param n_days:              The number of the day in the calendar year to process through.
-        :type n_days:               int; Default 365
+        :param n_days:                                      The number of the day in the calendar year to process through.
+                                                            Default 365       
+        :type n_days:                                       int
+
+        :param allow_retry:                                 If True, the model will try to retry a failed time step using what is specified in the 
+                                                            retry parameters. After a solution is found, the model will revert back to the original 
+                                                            solver parameter settings and continue on.
+                                                            Default True.
+        :type allow_retry:                                  bool
 
         :param retry_n_seeds:                               Number of random seeds to try per solver. Default is 1.
         :type retry_n_seeds:                                int
@@ -709,21 +721,25 @@ class Model:
 
             self.logger.info("All days completed successfully.")
 
-        except:
+        except Exception as e:
 
-            self.retry(
-                config_file=config_file,
-                restart_file=restart_file,
-                n_days=n_days,
-                n_seeds=retry_n_seeds,
-                solver_list=retry_solver_list,
-                dual_feasibility_tolerance_list=retry_dual_feasibility_tolerance_list,
-                primal_feasibility_tolerance_list=retry_primal_feasibility_tolerance_list,
-                ipm_optimality_tolerance_list=retry_ipm_optimality_tolerance_list,
-                simplex_strategy_list=retry_simplex_strategy_list,
-                simplex_scale_strategy_list=retry_simplex_scale_strategy_list,
-                simplex_dual_edge_weight_strategy_list=retry_simplex_dual_edge_weight_strategy_list,
-                simplex_primal_edge_weight_strategy_list=retry_simplex_primal_edge_weight_strategy_list,
-                pdlp_e_restart_method=retry_pdlp_e_restart_method,
-                pdlp_d_gap_tol_list=retry_pdlp_d_gap_tol_list,
-            )
+            if allow_retry:
+                self.retry(
+                    config_file=config_file,
+                    restart_file=restart_file,
+                    n_days=n_days,
+                    n_seeds=retry_n_seeds,
+                    solver_list=retry_solver_list,
+                    dual_feasibility_tolerance_list=retry_dual_feasibility_tolerance_list,
+                    primal_feasibility_tolerance_list=retry_primal_feasibility_tolerance_list,
+                    ipm_optimality_tolerance_list=retry_ipm_optimality_tolerance_list,
+                    simplex_strategy_list=retry_simplex_strategy_list,
+                    simplex_scale_strategy_list=retry_simplex_scale_strategy_list,
+                    simplex_dual_edge_weight_strategy_list=retry_simplex_dual_edge_weight_strategy_list,
+                    simplex_primal_edge_weight_strategy_list=retry_simplex_primal_edge_weight_strategy_list,
+                    pdlp_e_restart_method=retry_pdlp_e_restart_method,
+                    pdlp_d_gap_tol_list=retry_pdlp_d_gap_tol_list,
+                )
+
+            else:
+                raise e
