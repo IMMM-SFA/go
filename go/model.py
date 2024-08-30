@@ -80,7 +80,7 @@ class Model:
         restart_file: Union[None, str] = None,
         n_days: int = 365,
         n_seeds: int = 1,
-        solver_list: List[str] = ["simplex", "ipm", "pldp"],
+        solver_list: List[str] = ["simplex", "ipm", "pdlp"],
         dual_feasibility_tolerance_list: List[float] = [1e-07, 1e-06],
         primal_feasibility_tolerance_list: List[float] = [1e-07, 1e-06],
         ipm_optimality_tolerance_list: List[float] = [1e-08, 1e-07, 1e-06],
@@ -132,7 +132,7 @@ class Model:
                                                                 where the Simplex method might be inefficient due to the sheer size of the problem. It is also preferred 
                                                                 when the problem has a dense constraint matrix or when solving quadratic programming (QP) and other 
                                                                 nonlinear problems.
-                                                            pldp:
+                                                            pdlp:
                                                                 Description: The PDLP (Primal-Dual Hybrid Gradient) is a relatively new and advanced method designed 
                                                                 for solving large-scale linear optimization problems by using a primal-dual approach combined with 
                                                                 gradient-based methods. It works by simultaneously updating both primal and dual variables to minimize 
@@ -141,7 +141,7 @@ class Model:
                                                                 IPM might be too slow or resource-intensive. It is particularly suitable for problems where the 
                                                                 primal and dual objectives can be efficiently approximated using gradient methods, making it effective 
                                                                 in distributed or parallel computing environments.
-                                                            Default is ["simplex", "ipm", "pldp"]
+                                                            Default is ["simplex", "ipm", "pdlp"]
         :type solver_list:                                  List[str]
 
         :param dual_feasibility_tolerance_list:             List of dual feasibility tolerances to try.
@@ -394,7 +394,7 @@ class Model:
                     })
 
             else:
-                self.logger.warning(f'[SOLVER RETRY MODE] Solver selected "{solver}" is not a vaild option in ["simplex", "ipm", "pldp"].  Skipping.')
+                self.logger.warning(f'[SOLVER RETRY MODE] Solver selected "{solver}" is not a vaild option in ["simplex", "ipm", "pdlp"].  Skipping.')
 
         self.logger.info(f"[SOLVER RETRY MODE] Compiled a list of {len(trial_list)} strategies to try.")
 
@@ -465,7 +465,7 @@ class Model:
         n_days: int = 365,
         allow_retry: bool = True,
         retry_n_seeds: int = 1,
-        retry_solver_list: List[str] = ["simplex", "ipm", "pldp"],
+        retry_solver_list: List[str] = ["simplex", "ipm", "pdlp"],
         retry_dual_feasibility_tolerance_list: List[float] = [1e-07, 1e-06],
         retry_primal_feasibility_tolerance_list: List[float] = [1e-07, 1e-06],
         retry_ipm_optimality_tolerance_list: List[float] = [1e-08, 1e-07, 1e-06],
@@ -531,7 +531,7 @@ class Model:
                                                                 where the Simplex method might be inefficient due to the sheer size of the problem. It is also preferred 
                                                                 when the problem has a dense constraint matrix or when solving quadratic programming (QP) and other 
                                                                 nonlinear problems.
-                                                            pldp:
+                                                            pdlp:
                                                                 Description: The PDLP (Primal-Dual Hybrid Gradient) is a relatively new and advanced method designed 
                                                                 for solving large-scale linear optimization problems by using a primal-dual approach combined with 
                                                                 gradient-based methods. It works by simultaneously updating both primal and dual variables to minimize 
@@ -540,7 +540,7 @@ class Model:
                                                                 IPM might be too slow or resource-intensive. It is particularly suitable for problems where the 
                                                                 primal and dual objectives can be efficiently approximated using gradient methods, making it effective 
                                                                 in distributed or parallel computing environments.
-                                                            Default is ["simplex", "ipm", "pldp"]
+                                                            Default is ["simplex", "ipm", "pdlp"]
         :type retry_solver_list:                            List[str]
 
         :param retry_dual_feasibility_tolerance_list:       List of dual feasibility tolerances to try.
