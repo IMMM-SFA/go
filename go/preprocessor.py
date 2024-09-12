@@ -122,6 +122,10 @@ def build_data_file(
     all_BA_BA_connections = list(BA_to_BA_hurdle_data['BA_to_BA'])
     BA_to_BA_transmission_matrix = pd.read_csv(config.ba_to_ba_transmission_matrix_file, header=0)
 
+    # Read storage parameters and bus to storage map
+    storage_params = pd.read_csv(config.storage_params_file, header=0)
+    bus_to_storage_matrix = pd.read_csv(config.bus_to_storage_matrix_file, header=0)
+
     ######=================================================########
     ######               Segment A.3                       ########
     ######=================================================########
@@ -231,6 +235,14 @@ def build_data_file(
                 unit_name = df_gen.loc[gen, 'name']
                 unit_name = unit_name.replace(' ', '_')
                 f.write(unit_name + ' ')
+        f.write(';\n\n')
+
+        # Storage
+        f.write('set Storage :=\n')
+        for stor in range(0,len(storage_params)):
+            unit_name = storage_params.loc[stor,'name']
+            unit_name = unit_name.replace(' ','_')
+            f.write(unit_name + ' ')
         f.write(';\n\n')
 
         ######=================================================########
@@ -423,20 +435,6 @@ def build_data_file(
                 f.write(z + '_HYDRO' + '\t' + str(h + 1) + '\t' + str(df_hydro_TOTAL.loc[h, z]) + '\n')
         f.write(';\n\n')
 
-        ##    # solar (hourly)
-        ##    f.write('param:' + '\t' + 'SimSolar:=' + '\n')
-        ##    for z in s_nodes:
-        ##        for h in range(0,len(df_solar)):
-        ##            f.write(z + '\t' + str(h+1) + '\t' + str(df_solar.loc[h,z]) + '\n')
-        ##    f.write(';\n\n')
-        ##
-        ##    # wind (hourly)
-        ##    f.write('param:' + '\t' + 'SimWind:=' + '\n')
-        ##    for z in w_nodes:
-        ##        for h in range(0,len(df_wind)):
-        ##            f.write(z + '\t' + str(h+1) + '\t' + str(df_wind.loc[h,z]) + '\n')
-        ##    f.write(';\n\n')
-
         ###### System-wide hourly reserve
         # f.write('param' + '\t' + 'SimReserves:=' + '\n')
         # # for h in range(0,240):
@@ -476,7 +474,6 @@ def build_data_file(
         f.write('param ExchangeMap:' + '\n')
         f.write('\t')
         
-
         for j in BA_to_BA_transmission_matrix.columns:
             if j != 'Exchange':
                 f.write(j + '\t')
@@ -484,6 +481,20 @@ def build_data_file(
         for i in range(0, len(BA_to_BA_transmission_matrix)):
             for j in BA_to_BA_transmission_matrix.columns:
                 f.write(str(BA_to_BA_transmission_matrix.loc[i, j]) + '\t')
+            f.write('\n')
+        f.write(';\n\n')
+
+        # Bus to storage matrix
+        f.write('param BustoStorageMap:' +'\n')
+        f.write('\t')
+
+        for j in bus_to_storage_matrix.columns:
+            if j!= 'name':
+                f.write(j + '\t')
+        f.write(':=' + '\n')
+        for i in range(0,len(bus_to_storage_matrix)):
+            for j in bus_to_storage_matrix.columns:
+                f.write(str(bus_to_storage_matrix.loc[i,j]) + '\t')
             f.write('\n')
         f.write(';\n\n')
 
@@ -497,6 +508,25 @@ def build_data_file(
         for z in all_thermals:
             for d in range(0, int(simulation_hours / 24)):
                 f.write(z + '\t' + str(d + 1) + '\t' + str(df_fuel.loc[d, z]) + '\n')
+        f.write(';\n\n')
+
+        ####### Storage parameters
+        f.write('param:' + '\t')
+        for c in storage_params.columns:
+            if c != 'name':
+                f.write(c + '\t')
+        f.write(':=\n\n')
+        for i in range(0,len(storage_params)):
+            for c in storage_params.columns:
+                if c == 'name':
+                    unit_name = storage_params.loc[i,'name']
+                    unit_name = unit_name.replace(' ','_')
+                    unit_name = unit_name.replace('&','_')
+                    unit_name = unit_name.replace('.','')
+                    f.write(unit_name + '\t')
+                else:
+                    f.write(str((storage_params.loc[i,c])) + '\t')
+            f.write('\n')
         f.write(';\n\n')
 
     logger.info(f"Generated file: {config.dat_file}")

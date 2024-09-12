@@ -3,7 +3,7 @@ import pyomo.environ as pyo
 
 def SysCost(model):
     """Objective function that calculates the total system cost based on the generation,
-    slack, hydro, wind, solar, exchange, offshore wind, and power flow costs.
+    slack, hydro, wind, solar, exchange, offshore wind, charging storage, discharging storage and power flow costs.
 
     Returns:
     float: Total system cost
@@ -21,7 +21,9 @@ def SysCost(model):
         model.Flow[l, i] * model.ExchangeMap[k, l] * model.ExchangeHurdle[k] for l in model.lines for i in
         model.hh_periods for k in model.exchanges)
     powerflow_cost = sum(model.DummyFlow[l, i] * 0.01 for l in model.lines for i in model.hh_periods)
-    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost
+    charging_cost = sum(model.Charge[j, i] * 0.001 for i in model.hh_periods for j in model.Storage)
+    discharging_cost = sum(model.Discharge[j, i] * 0.001 for i in model.hh_periods for j in model.Storage)
+    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost + charging_cost + discharging_cost
 
 
 def Ramp1(model, j, i):
@@ -174,7 +176,9 @@ def Nodal_Balance(model, z, i):
     gen = sum(model.mwh[j, i] * model.BustoUnitMap[j, z] for j in model.Generators)
     slack = model.S[z, i]
     must_run = model.HorizonMustrunLimit[z, i]
-    return gen + slack + must_run - power_flow == model.HorizonDemand[z, i]
+    storage_charge = sum(model.Charge[j,i]*model.BustoStorageMap[j,z] for j in model.Storage)
+    storage_discharge = sum(model.Discharge[j,i]*model.BustoStorageMap[j,z] for j in model.Storage)
+    return gen + slack + must_run - power_flow == model.HorizonDemand[z,i] + storage_charge - storage_discharge
 
 
 def Flow_line(model, l, i):
@@ -255,6 +259,110 @@ def DummyFlow2(model, l, i):
     return model.DummyFlow[l, i] >= model.Flow[l, i] * -1
 
 
+def MaxCharge1(model, j, i):
+    """First maximum charge rate constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the first maximum charge rate constraint
+    """
+    return model.Charge[j,i] <= model.charge_rate[j]
+
+
+def MaxCharge2(model, j, i):
+    """Second maximum charge rate constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the second maximum charge rate constraint
+    """
+    return model.Charge[j,i] <= (model.max_SoC[j]-model.SoC[j,i-1])/model.charge_eff[j]
+
+
+def MaxDischarge1(model, j, i):
+    """First maximum discharge rate constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the first maximum discharge rate constraint
+    """
+    return model.Discharge[j,i] <= model.discharge_rate[j]
+
+
+def MaxDischarge2(model, j, i):
+    """Second maximum discharge rate constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the second maximum discharge rate constraint
+    """
+    return model.Discharge[j,i] <= (model.SoC[j,i-1]-model.min_SoC[j])*model.discharge_eff[j]
+
+
+def MaximumSoC(model, j, i):
+    """Maximum state of charge constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the maximum state of charge constraint
+    """
+    return model.SoC[j,i] <= model.max_SoC[j]
+
+
+def MinimumSoC(model, j, i):
+    """Minimum state of charge constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the minimum state of charge constraint
+    """
+    return model.SoC[j,i] >= model.min_SoC[j]
+
+
+def SoCBalance(model, j, i):
+    """State of charge balance constraint of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the state of charge balance constraint
+    """
+    return model.SoC[j,i] == model.SoC[j,i-1] + (model.Charge[j,i]*model.charge_eff[j]) - (model.Discharge[j,i]/model.discharge_eff[j])
+
+
+def SimChargeDischarge(model, j, i):
+    """Constraint to minimize simultaneous charge and discharge of batteries
+
+    Parameters:
+    j (int): Index of the storage facility
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the simultaneous charge and discharge of batteries constraint
+    """
+    return model.Discharge[j,i] <= model.discharge_rate[j]-((model.discharge_rate[j]/model.charge_rate[j])*model.Charge[j,i])
+
+
 def model_west_linear_multi(*args, **kwargs):
     """This class defines an abstract model for a linear optimization problem for the Western Interconnection."""
 
@@ -288,6 +396,9 @@ def model_west_linear_multi(*args, **kwargs):
 
     # Offshore wind generators
     model.OffshoreWind = pyo.Set()
+
+    # Storage facilities
+    model.Storage = pyo.Set()
 
     # Define sets of generators by fuel-type
     model.Thermal = model.Coal | model.Oil | model.Gas | model.Biomass | model.Geothermal
@@ -391,6 +502,36 @@ def model_west_linear_multi(*args, **kwargs):
     # Mapping of exchanges to transmission lines
     model.ExchangeMap = pyo.Param(model.exchanges, model.lines, mutable=True)
 
+    # Type of storage (e.g., battery, pumped storage hydro)
+    model.s_typ = pyo.Param(model.Storage, within=pyo.Any)
+
+    # Name of the node where the storage facility is located
+    model.s_node = pyo.Param(model.Storage, within=pyo.Any)
+
+    # Charge rate of storage facility
+    model.charge_rate = pyo.Param(model.Storage)
+
+    # Discharge rate of storage facility
+    model.discharge_rate = pyo.Param(model.Storage)
+
+    # Duration of storage facility
+    model.duration = pyo.Param(model.Storage)
+
+    # Maximum state of charge (SoC) of storage facility
+    model.max_SoC = pyo.Param(model.Storage)
+
+    # Minimum state of charge (SoC) of storage facility
+    model.min_SoC = pyo.Param(model.Storage)
+
+    # Charge efficiency of storage facility
+    model.charge_eff = pyo.Param(model.Storage)
+
+    # Discharge efficiency of storage facility
+    model.discharge_eff = pyo.Param(model.Storage)
+
+    # Mapping of storage facilities to buses
+    model.BustoStorageMap = pyo.Param(model.Storage, model.buses)
+
     # Full range of time series information
     # Total number of simulation hours
     model.SimHours = pyo.Param(within=pyo.PositiveIntegers)
@@ -475,10 +616,10 @@ def model_west_linear_multi(*args, **kwargs):
     model.HorizonMustrunLimit = pyo.Param(model.buses, model.hh_periods, within=pyo.NonNegativeReals, mutable=True)
 
     # Fuel prices over simulation period
-    model.SimFuelPrice = pyo.Param(model.Thermal, model.SD_periods, within=pyo.NonNegativeReals)
+    model.SimFuelPrice = pyo.Param(model.Thermal, model.SD_periods, within=pyo.Reals)
 
     # Fuel prices over horizon
-    model.FuelPrice = pyo.Param(model.Thermal, within=pyo.NonNegativeReals, mutable=True)
+    model.FuelPrice = pyo.Param(model.Thermal, within=pyo.Reals, mutable=True)
 
     # Amount of day-ahead energy generated by each generator at each hour
     model.mwh = pyo.Var(model.Generators, model.HH_periods, within=pyo.NonNegativeReals, initialize=0)
@@ -490,10 +631,19 @@ def model_west_linear_multi(*args, **kwargs):
     model.Flow = pyo.Var(model.lines, model.hh_periods, initialize=0)
 
     # transmission line variables
-    model.Theta = pyo.Var(model.buses, model.hh_periods)
+    model.Theta = pyo.Var(model.buses, model.hh_periods, bounds=(-3.1415, 3.1415))
 
     # This is created to enforce a penalty on power flows, which prevents slack generation to be transmitted elsewhere in the grid.
     model.DummyFlow = pyo.Var(model.lines, model.hh_periods, initialize=0)
+
+    # State of charge variables of batteries
+    model.SoC = pyo.Var(model.Storage, model.HH_periods, within=pyo.NonNegativeReals)
+
+    # Charging variables of batteries
+    model.Charge = pyo.Var(model.Storage, model.hh_periods, within=pyo.NonNegativeReals, initialize=0)
+
+    # Discharging variables of batteries
+    model.Discharge = pyo.Var(model.Storage, model.hh_periods, within=pyo.NonNegativeReals, initialize=0)
 
     # Objective function to minimize system cost
     model.SystemCost = pyo.Objective(rule=SysCost, sense=pyo.minimize)
@@ -548,5 +698,29 @@ def model_west_linear_multi(*args, **kwargs):
 
     # Dummy flow constraints
     model.DummyFlow2_Constraint = pyo.Constraint(model.lines, model.hh_periods, rule=DummyFlow2)
+
+    # First maximum charge constraint
+    model.MaxCharge1_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=MaxCharge1)
+
+    # Second maximum charge constraint
+    model.MaxCharge2_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=MaxCharge2)
+
+    # First maximum discharge constraint
+    model.MaxDischarge1_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=MaxDischarge1)
+
+    # Second maximum discharge constraint
+    model.MaxDischarge2_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=MaxDischarge2)
+
+    # Maximum state of charge constraint
+    model.MaximumSoC_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=MaximumSoC)
+
+    # Minimum state of charge constraint
+    model.MinimumSoC_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=MinimumSoC)
+
+    # State of charge balance constraint
+    model.SoCBalance_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=SoCBalance)
+
+    # Simultaneous charge and discharge constraint
+    model.SimChargeDischarge_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=SimChargeDischarge)
 
     return model

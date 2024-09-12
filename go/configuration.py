@@ -61,6 +61,10 @@ class Config:
         The path to the BA to BA hurdle scaled file.
     ba_to_ba_transmission_matrix_file : str
         The path to the BA to BA transmission matrix file.
+    storage_params_file : str
+        The path to the storage parameters file.
+    bus_to_storage_matrix_file : str
+        The path to the bus to storage matrix file.
     generator_outage_file : str
         The path to the generator outage cat file.
     dat_file : str
@@ -79,6 +83,12 @@ class Config:
         The path to the flow file.
     duals_file : str
         The path to the duals file.
+    SoC_file : str
+        The path to the storage SoC file.
+    discharge_file : str
+        The path to the storage discharge file.
+    charge_file : str
+        The path to the storage charge file.
     restart_file_directory: str
         The directory path to save the model restart file to
 
@@ -99,6 +109,8 @@ class Config:
     fuel_prices_file: str
     ba_to_ba_hurdle_scaled_file: str
     ba_to_ba_transmission_matrix_file: str
+    storage_params_file: str
+    bus_to_storage_matrix_file: str
     generator_outage_file: str
     dat_file: str
     thermal_generators_file: str
@@ -108,6 +120,9 @@ class Config:
     slack_file: str
     flow_file: str
     duals_file: str
+    SoC_file: str
+    discharge_file: str
+    charge_file: str
     restart_file_directory: str
 
 

@@ -134,6 +134,9 @@ def west_linear_multi(
         slack = []
         vlt_angle = []
         duals = []
+        charge=[]
+        discharge=[]
+        SoC=[]
 
         # storing solver parameters
         solver_parameters = {}
@@ -323,6 +326,14 @@ def west_linear_multi(
                 instance.HorizonMustrunLimit[z, i] = max(0, instance.HorizonMustrunLimit[z, i].value - df_losses.loc[
                     (day - 1) * 24 + i, 'Nuclear_ovr_1000'] / len(nucs))
 
+        # Initializing the state of charge of storage facilities as minimum state of charge, if it's the first day of simulation     
+        if day == 1:
+            for j in instance.Storage:
+                instance.SoC[j, 0] = instance.min_SoC[j]
+                instance.SoC[j, 0].fixed = True
+        else:
+            pass
+
         logger.info(f"Day {day}: Start optimization")
         
         result = opt.solve(
@@ -430,6 +441,22 @@ def west_linear_multi(
                     if int(index[1] > 0 and index[1] < 25):
                         flow.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value))
 
+            if a == 'SoC':
+                for index in varobject:
+                    if int(index[1] > 0 and index[1] < 25):
+                        SoC.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value))
+
+            if a == 'Charge':
+                for index in varobject:
+                    if int(index[1] > 0 and index[1] < 25):
+                        charge.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value))
+
+            if a == 'Discharge':
+                for index in varobject:
+                    if int(index[1] > 0 and index[1] < 25):
+                        discharge.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value))  
+
+            # Passing last hour of generation for each generator to the first hour of next day
             for j in instance.Dispatchable:
                 if instance.mwh[j, 24].value <= 0 and instance.mwh[j, 24].value >= -0.0001:
                     newval_1 = 0
@@ -437,6 +464,12 @@ def west_linear_multi(
                     newval_1 = instance.mwh[j, 24].value
                 instance.mwh[j, 0] = newval_1
                 instance.mwh[j, 0].fixed = True
+
+            # Passing last hour of state of charge for each storage facility to the first hour of next day
+            for j in instance.Storage:
+                newval_2 = instance.SoC[j, 24].value
+                instance.SoC[j, 0] = newval_2
+                instance.SoC[j, 0].fixed = True
 
         if save_restart_file:
 
@@ -466,6 +499,9 @@ def west_linear_multi(
     slack_pd = pd.DataFrame(slack, columns=('Node','Time','Value'))
     flow_pd = pd.DataFrame(flow, columns=('Line', 'Time', 'Value'))
     duals_pd = pd.DataFrame(duals, columns=('Bus', 'Time', 'Value'))
+    SoC_pd = pd.DataFrame(SoC, columns=('Storage','Time','Value'))
+    discharge_pd = pd.DataFrame(discharge, columns=('Storage','Time','Value'))
+    charge_pd = pd.DataFrame(charge, columns=('Storage','Time','Value'))
 
     # to save outputs
     vlt_angle_pd.to_parquet(config.vlt_angle_file, index=False)
@@ -473,6 +509,9 @@ def west_linear_multi(
     slack_pd.to_parquet(config.slack_file, index=False)
     flow_pd.to_parquet(config.flow_file, index=False)
     duals_pd.to_parquet(config.duals_file, index=False)
+    SoC_pd.to_parquet(config.SoC_file, index=False)
+    discharge_pd.to_parquet(config.discharge_file, index=False)
+    charge_pd.to_parquet(config.charge_file, index=False)
 
     # write out the solver parameters as a JSON file
     write_solver_parameters(
