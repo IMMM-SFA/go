@@ -79,6 +79,9 @@ class Config:
         The path to the flow file.
     duals_file : str
         The path to the duals file.
+    restart_file_directory: str
+        The directory path to save the model restart file to
+
     """
     
     generator_parameters_file: str
@@ -105,6 +108,7 @@ class Config:
     slack_file: str
     flow_file: str
     duals_file: str
+    restart_file_directory: str
 
 
 def generate_config(config_file: Union[str, None] = None, **kwargs) -> Config:

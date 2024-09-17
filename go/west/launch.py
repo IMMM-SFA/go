@@ -1,6 +1,8 @@
 import logging
+import os
 from typing import Union
 
+import cloudpickle
 import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
@@ -9,6 +11,7 @@ from pyomo.core import Constraint, Var
 from go import configuration
 from go.solvers import GoSolver
 from go.west.linear import model_west_linear_multi
+from go.utilities import write_solver_parameters
 
 
 def west_linear_multi(
@@ -16,6 +19,10 @@ def west_linear_multi(
     solver_name: str = "appsi_highs",
     solver_params: Union[None, dict] = None,
     n_days: int = 365,
+    restart_file: Union[None, str] = None,
+    save_restart_file: bool = True,
+    break_run: bool = False,
+    reset_restart_file: bool = False,
     **kwargs
 ):
     """
@@ -29,10 +36,31 @@ def west_linear_multi(
     :type solver_name:          str
 
     :param solver_params:       Parameter dictionary for the chosen solver to set options for the solver natively.
-    :type solver_params:        Union[None, dict]; Default None
+                                Default None
+    :type solver_params:        Union[None, dict]
 
-    :param n_days:              The number of days for which the model should be run. Default is 365.
+    :param n_days:              The number of the day in the calendar year to process through.
+                                Default 365
     :type n_days:               int
+
+    :param restart_file:        Full path to cloudpickled restart file.  If no file is provided, the model will search for one
+                                in the restart_file_directory specified by the user in the configuration file.
+                                Default None
+    :type restart_file:         Union[None, str]
+
+    :param save_restart_file:   If True, save a restart file after ever timestep. 
+                                Default True
+    :type save_restart_file:    bool
+
+    :param break_run:           If True, run will break after one day iteration.  This is only called if the 
+                                SOLVER RETRY MODE is initiated.
+                                Default False
+    :type break_run:            bool
+
+    :param reset_restart_file:  If True, any existing restart file will be deleted.  This is usualy used if the user wants
+                                to start from day 1 but has already done a few runs and thus generated a restart file.
+                                Default False
+    :type reset_restart_file:   bool
 
     """
 
@@ -43,12 +71,6 @@ def west_linear_multi(
     # read in config file
     config = configuration.generate_config(config_file=config_file, **kwargs)
 
-    # instantiate go solver
-    opt = GoSolver(
-        solver_name=solver_name,
-        solver_params=solver_params
-    ).go_solver
-
     # read in input files to data frames
     df_generators = pd.read_csv(config.generator_parameters_file, header=0)
     df_thermal = pd.read_csv(config.thermal_generators_file, header=0)
@@ -58,30 +80,106 @@ def west_linear_multi(
     # extract nuclear
     nucs = df_thermal[df_thermal['Fuel'] == 'NUC (Nuclear)'].copy()
 
-    # instantiate model
-    go_model = model_west_linear_multi()
-    instance = go_model.create_instance(config.dat_file)
-    instance.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
+    # instantiate go solver
+    opt = GoSolver(
+        solver_name=solver_name,
+        solver_params=solver_params
+    ).go_solver
 
-    # Total number of hours in the operating horizon
-    n_horizon_hours = instance.HorizonHours
+    # Where the new restart file will saved to; this will not overwrite the restart file
+    # -- passed in by the user unless they are the same path.  This gives the user the 
+    # -- ability to pass in a restart file from another model if needed.
+    local_restart_file = os.path.join(
+        config.restart_file_directory,
+        f"model_restart_file.pkl"
+    )
 
-    # Generator for hours 1..n
-    horizon_hours_series = range(1,  n_horizon_hours + 1)
+    if reset_restart_file:
+        try:
+            os.remove(local_restart_file)
+            logger.info(f"Deleted existing restart file {local_restart_file}")
+        except PermissionError:
+            logger.error(f"Permission denied: Unable to delete the restart file {local_restart_file}")
+            raise PermissionError(f"Permission denied: Unable to delete the restart file {local_restart_file}")
 
-    # Space to store results
-    mwh = []
-    on = []
-    switch = []
-    flow = []
-    slack = []
-    vlt_angle = []
-    duals = []
+    # if a restart file is provided or exists then use it
+    if restart_file is None and os.path.exists(local_restart_file):
+        restart_file = local_restart_file
+    elif restart_file is None and os.path.exists(local_restart_file) is False:
+        restart_file = None 
+    else:
+        restart_file = restart_file
 
-    # max here can be (1,365)
-    for day in range(1, n_days + 1):
+    # start from scratch if no restart file has been provided or previously created
+    if restart_file is None:
+
+        start_day = 1
+
+        # instantiate model
+        go_model = model_west_linear_multi()
+        instance = go_model.create_instance(config.dat_file)
+        instance.dual = pyo.Suffix(direction=pyo.Suffix.IMPORT)
+
+        # Total number of hours in the operating horizon
+        n_horizon_hours = instance.HorizonHours
+
+        # Generator for hours 1..n
+        horizon_hours_series = range(1,  n_horizon_hours + 1)
+
+        # store outputs
+        mwh = []
+        on = []
+        switch = []
+        flow = []
+        slack = []
+        vlt_angle = []
+        duals = []
+
+        # storing solver parameters
+        solver_parameters = {}
+
+    else:
+
+        logger.info(f"Initializing with the following restart file: {restart_file}")
+
+        with open(restart_file, "rb") as f:
+            restart_data = cloudpickle.load(f)
+
+        instance = restart_data["model"]
+        mwh = restart_data["mwh"]
+        on = restart_data["on"]
+        switch = restart_data["switch"]
+        flow = restart_data["flow"]
+        slack = restart_data["slack"]
+        vlt_angle = restart_data["vlt_angle"]
+        duals = restart_data["duals"]
+        solver_parameters = restart_data["solver_parameters"]
+
+        # make the start day one day ahead of the last day to solve
+        start_day = restart_data["day"] + 1
+
+        # Total number of hours in the operating horizon
+        n_horizon_hours = instance.HorizonHours
+
+        # Generator for hours 1..n
+        horizon_hours_series = range(1,  n_horizon_hours + 1)
+
+    # n_days is the number of the day in the calendar year to process through.  If the start day
+    # -- is greater than the calendar day being processed, the will be no days to process.
+    if n_days < start_day:
+        msg = (
+            f"n_days setting ({n_days}) must be >= to the start day ({start_day}). " + 
+            "n_days represents the number of the day in the calendar year to process through."
+        )
+        raise AssertionError(msg)
+
+    # max here can be (1, 365)
+    for day in range(start_day, n_days + 1):
 
         logger.info(f"Day {day}: Set up optimization")
+
+        # store the solver parameters for the current day
+        solver_parameters[day] = solver_params
 
         for z in instance.buses:
             # load Demand and Reserve time series data
@@ -226,10 +324,29 @@ def west_linear_multi(
                     (day - 1) * 24 + i, 'Nuclear_ovr_1000'] / len(nucs))
 
         logger.info(f"Day {day}: Start optimization")
-        result = opt.solve(instance,
-                           tee=True,
-                           symbolic_solver_labels=True,
-                           load_solutions=False)
+        
+        result = opt.solve(
+            instance,
+            tee=True,
+            symbolic_solver_labels=True,
+            load_solutions=False
+        )
+
+        # ensure that the solver termination condition is optimal
+        if result.solver.termination_condition != pyo.TerminationCondition.optimal:
+            logger.error(f"Day {day}: Optimization did not converge to an optimal solution. Termination condition: {result.solver.termination_condition}")
+            
+            if save_restart_file:
+
+                logger.info(f"Day {day}: Writing restart file")
+
+                with open(local_restart_file, "wb") as f:
+                    cloudpickle.dump(restart_data, f)
+
+                logger.info(f'Day {restart_data["day"]}: Restart file written to {local_restart_file}.')
+
+            raise RuntimeError(f"Optimization failed on day {day} with termination condition: {result.solver.termination_condition}")
+
         logger.info(f"Day {day}: Finished optimization")
 
         logger.info(f"Day {day}: Processing optimization result")
@@ -321,7 +438,28 @@ def west_linear_multi(
                 instance.mwh[j, 0] = newval_1
                 instance.mwh[j, 0].fixed = True
 
+        if save_restart_file:
+
+            restart_data = {
+                "model": instance,
+                "mwh": mwh,
+                "on": on,
+                "switch": switch,
+                "flow": flow,
+                "slack": slack,
+                "vlt_angle": vlt_angle,
+                "duals": duals,
+                "day": day,
+                "solver_parameters": solver_parameters
+            }
+
         logger.info(f'Day {day} completed.')
+
+        # if only one iteration is desired break the loop
+        # -- this is only set to True when the model cannot solve and 
+        # -- the SOLVER RETRY MODE is activated.
+        if break_run:
+            break
 
     vlt_angle_pd = pd.DataFrame(vlt_angle, columns=('Node', 'Time', 'Value'))
     mwh_pd = pd.DataFrame(mwh, columns=('Generator', 'Type', 'Time', 'Value'))
@@ -335,3 +473,11 @@ def west_linear_multi(
     slack_pd.to_parquet(config.slack_file, index=False)
     flow_pd.to_parquet(config.flow_file, index=False)
     duals_pd.to_parquet(config.duals_file, index=False)
+
+    # write out the solver parameters as a JSON file
+    write_solver_parameters(
+        solver_parameter_dictionary=solver_parameters,
+        solver_parameter_file=os.path.join(config.restart_file_directory, "solver_parameters.json")
+    )
+
+    return day
