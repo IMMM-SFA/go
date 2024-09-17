@@ -7,10 +7,7 @@
 #### `go` is an open-source grid operations model
 
 ### Purpose
-`go` was created to:
-
-  - Prepare topologies for grid networks
-  - Model grid operations under projections of alterate futures
+`go` was created to model grid operations under projections of alterate futures
 
 
 ### Install `go`
