@@ -6,87 +6,13 @@ go documentation
 **Date**: |today| **Version**: |version|
 
 **Useful links**:
-`Source Repository <https://github.com/immm-sfa/>`_ |
+`Source Repository <https://github.com/immm-sfa/go>`_ |
 `Issues & Ideas <https://github.com/immm-sfa/go/issues>`_ |
 `Interactive Quickstarter <quickstarter.rst>`_
 
 **go** is an open-source grid operations model.
 
-**go** was created to:
-
- 1) Prepare topologies for grid networks
-
- 2) Model grid operations under projections of alternate futures
-
-.. panels::
-    :card: + intro-card text-center
-    :column: col-lg-6 col-md-6 col-sm-6 col-xs-12 d-flex
-
-
-    ---
-    :img-top: _static/index_getting_started.svg
-
-    Getting Started
-    ^^^^^^^^^^^^^^^
-
-    New to **go**?  Get familiar with what **go** is all about.
-
-    +++
-
-    .. link-button:: getting_started
-            :type: ref
-            :text: What go is all about
-            :classes: btn-block btn-secondary stretched-link
-
-    ---
-    :img-top: _static/index_user_guide.svg
-
-    User Guide
-    ^^^^^^^^^^
-
-    The user guide provides in-depth information on the
-    key concepts of **go**.
-
-    +++
-
-    .. link-button:: user_guide
-            :type: ref
-            :text: To the user guide
-            :classes: btn-block btn-secondary stretched-link
-
-    ---
-    :img-top: _static/index_api.svg
-
-    API Reference
-    ^^^^^^^^^^^^^
-
-    The reference guide contains a detailed description of
-    the **go** API. The reference describes how the methods
-    work and which parameters can be used.
-
-    +++
-
-    .. link-button:: go
-            :type: ref
-            :text: To the reference guide
-            :classes: btn-block btn-secondary stretched-link
-
-    ---
-    :img-top: _static/index_contribute.svg
-
-    Contributing to go
-    ^^^^^^^^^^^^^^^^^^^^
-
-    Saw a typo in the documentation? Want to improve
-    existing functionalities? The contributing guidelines will guide
-    you through the process of improving **go**.
-
-    +++
-
-    .. link-button:: contributing
-            :type: ref
-            :text: To the development guide
-            :classes: btn-block btn-secondary stretched-link
+**go** was created to model grid operations under projections of alternate futures
 
 
 .. toctree::
@@ -95,10 +21,9 @@ go documentation
 
    getting_started
    user_guide
-   modules
    contributing
    publications
    how_to_cite
-   authors
    license
+   modules
    footer

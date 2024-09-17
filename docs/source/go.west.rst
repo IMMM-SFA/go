@@ -1,21 +1,21 @@
-go.wecc package
+go.west package
 ===============
 
 Submodules
 ----------
 
-go.wecc.linear module
+go.west.launch module
 ---------------------
 
-.. automodule:: go.wecc.linear
+.. automodule:: go.west.launch
    :members:
    :undoc-members:
    :show-inheritance:
 
-go.wecc.mixed\_integer module
------------------------------
+go.west.linear module
+---------------------
 
-.. automodule:: go.wecc.mixed_integer
+.. automodule:: go.west.linear
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ go.wecc.mixed\_integer module
 Module contents
 ---------------
 
-.. automodule:: go.wecc
+.. automodule:: go.west
    :members:
    :undoc-members:
    :show-inheritance:

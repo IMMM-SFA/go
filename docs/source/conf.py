@@ -13,7 +13,6 @@
 import os
 import sys
 
-import sphinx_rtd_theme
 
 # import go
 version = '0.1.0' # str(go.__version__)
@@ -25,8 +24,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'go'
-copyright = '2021, Battelle Memorial Institute'
-author = 'Jordan Kern'
+copyright = '2021-present, Battelle Memorial Institute'
 
 # The full version, including alpha/beta/rc tags
 release = version
@@ -48,8 +46,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.mathjax',
     'sphinx.ext.autosectionlabel',
-    'sphinx_rtd_theme',
-    'sphinx_panels',
+    'sphinx_book_theme',
     'nbsphinx'
 ]
 
@@ -70,7 +67,7 @@ source_suffix = [".rst"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'sphinx_book_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

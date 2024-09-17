@@ -7,12 +7,18 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   go.eic
-   go.ercot
-   go.wecc
+   go.west
 
 Submodules
 ----------
+
+go.configuration module
+-----------------------
+
+.. automodule:: go.configuration
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 go.install\_supplement module
 -----------------------------
@@ -34,6 +40,30 @@ go.package\_data module
 -----------------------
 
 .. automodule:: go.package_data
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+go.preprocessor module
+----------------------
+
+.. automodule:: go.preprocessor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+go.solvers module
+-----------------
+
+.. automodule:: go.solvers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+go.utilities module
+-------------------
+
+.. automodule:: go.utilities
    :members:
    :undoc-members:
    :show-inheritance:

@@ -16,7 +16,7 @@ We introduce a metric named Net Locational Cost (NLC) that is used compete power
 Python version support
 ----------------------
 
-Officially Python 3.6-9
+Officially Python 3.9 - 3.11
 
 
 Installation
