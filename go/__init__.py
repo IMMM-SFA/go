@@ -3,8 +3,6 @@ import logging
 import pyomo.environ
 
 from .west import *
-from .eic import *
-from .ercot import *
 from .configuration import *
 from .preprocessor import *
 from .model import Model
