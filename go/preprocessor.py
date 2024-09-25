@@ -111,8 +111,11 @@ def build_data_file(
     # df_reserves = pd.DataFrame((df_load.iloc[:,:].sum(axis=1)*res_margin).values,columns=['Reserve'])
 
     # must run at substation-level
-    df_must = pd.read_csv(config.must_run_file, header=0)
-    h3 = df_must.columns
+    try:
+        df_must = pd.read_csv(config.must_run_file, header=0)
+        h3 = df_must.columns
+    except: #This exception prevents potential issues when df_must dataframe is empty due to retiring all nuclear generators
+        h3 = []
 
     # Fuel prices at each generator
     df_fuel = pd.read_csv(config.fuel_prices_file, header=0)
