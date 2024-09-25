@@ -327,7 +327,7 @@ def build_data_file(
         f.write('param:' + '\t' + 'SimGenLimit:=' + '\n')
         for z in thermal_generators_names:
             thermal_gen_capacity = thermal_generators_df.loc[thermal_generators_df['name'] == z]['maxcap'].values[0]
-            for h in range(0, 8760):
+            for h in range(0, simulation_hours):
                 f.write(z + '\t' + str(h + 1) + '\t' + str(thermal_gen_capacity) + '\n')
         f.write(';\n\n')
 
@@ -335,10 +335,10 @@ def build_data_file(
         f.write('param:' + '\t' + 'SimMustrunLimit:=' + '\n')
         for z in all_nodes:
             if z in h3:
-                for h in range(0, 8760):
+                for h in range(0, simulation_hours):
                     f.write(z + '\t' + str(h + 1) + '\t' + str(df_must.loc[0, z]) + '\n')
             else:
-                for h in range(0, 8760):
+                for h in range(0, simulation_hours):
                     f.write(z + '\t' + str(h + 1) + '\t' + str(0) + '\n')
         f.write(';\n\n')
 
@@ -370,7 +370,7 @@ def build_data_file(
         # load (hourly)
         f.write('param:' + '\t' + 'SimDemand:=' + '\n')
         for z in all_nodes:
-            for h in range(0, len(df_load)):
+            for h in range(0, simulation_hours):
                 f.write(z + '\t' + str(h + 1) + '\t' + str(df_load.loc[h, z]) + '\n')
         f.write(';\n\n')
 
@@ -378,21 +378,21 @@ def build_data_file(
         f.write('param:' + '\t' + 'SimSolar:=' + '\n')
         s_gens = df_solar.columns
         for z in s_gens:
-            for h in range(0, len(df_solar)):
+            for h in range(0, simulation_hours):
                 f.write(z + '_SOLAR' + '\t' + str(h + 1) + '\t' + str(df_solar.loc[h, z]) + '\n')
         f.write(';\n\n')
 
         f.write('param:' + '\t' + 'SimWind:=' + '\n')
         w_gens = df_wind.columns
         for z in w_gens:
-            for h in range(0, len(df_wind)):
+            for h in range(0, simulation_hours):
                 f.write(z + '_WIND' + '\t' + str(h + 1) + '\t' + str(df_wind.loc[h, z]) + '\n')
         f.write(';\n\n')
 
         f.write('param:' + '\t' + 'SimOffshoreWind:=' + '\n')
         ow_gens = df_offshorewind.columns
         for z in ow_gens:
-            for h in range(0, len(df_offshorewind)):
+            for h in range(0, simulation_hours):
                 f.write(z + '_OFFSHOREWIND' + '\t' + str(h + 1) + '\t' + str(df_offshorewind.loc[h, z]) + '\n')
         f.write(';\n\n')
 
@@ -400,7 +400,7 @@ def build_data_file(
         f.write('param:' + '\t' + 'SimHydro_MAX:=' + '\n')
         h_gens = df_hydro_MAX.columns
         for z in h_gens:
-            for h in range(0, len(df_hydro_MAX)):
+            for h in range(0, simulation_days):
                 # for h in range(0,240):
                 f.write(z + '_HYDRO' + '\t' + str(h + 1) + '\t' + str(df_hydro_MAX.loc[h, z]) + '\n')
         f.write(';\n\n')
@@ -409,7 +409,7 @@ def build_data_file(
         f.write('param:' + '\t' + 'SimHydro_MIN:=' + '\n')
         h_gens = df_hydro_MIN.columns
         for z in h_gens:
-            for h in range(0, len(df_hydro_MIN)):
+            for h in range(0, simulation_days):
                 # for h in range(0,240):
                 f.write(z + '_HYDRO' + '\t' + str(h + 1) + '\t' + str(df_hydro_MIN.loc[h, z]) + '\n')
         f.write(';\n\n')
@@ -418,7 +418,7 @@ def build_data_file(
         f.write('param:' + '\t' + 'SimHydro_TOTAL:=' + '\n')
         h_gens = df_hydro_TOTAL.columns
         for z in h_gens:
-            for h in range(0, len(df_hydro_MAX)):
+            for h in range(0, simulation_days):
                 # for h in range(0,240):
                 f.write(z + '_HYDRO' + '\t' + str(h + 1) + '\t' + str(df_hydro_TOTAL.loc[h, z]) + '\n')
         f.write(';\n\n')
@@ -495,7 +495,7 @@ def build_data_file(
 
         f.write('param:' + '\t' + 'SimFuelPrice:=' + '\n')
         for z in all_thermals:
-            for d in range(0, int(simulation_hours / 24)):
+            for d in range(0, simulation_days):
                 f.write(z + '\t' + str(d + 1) + '\t' + str(df_fuel.loc[d, z]) + '\n')
         f.write(';\n\n')
 
