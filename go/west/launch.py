@@ -156,6 +156,9 @@ def west_linear_multi(
         slack = restart_data["slack"]
         vlt_angle = restart_data["vlt_angle"]
         duals = restart_data["duals"]
+        charge = restart_data["charge"]
+        discharge = restart_data["discharge"]
+        SoC = restart_data["SoC"]
         solver_parameters = restart_data["solver_parameters"]
 
         # make the start day one day ahead of the last day to solve
@@ -479,6 +482,9 @@ def west_linear_multi(
                 "on": on,
                 "switch": switch,
                 "flow": flow,
+                "charge": charge,
+                "discharge": discharge,
+                "SoC": SoC,
                 "slack": slack,
                 "vlt_angle": vlt_angle,
                 "duals": duals,
