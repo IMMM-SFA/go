@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pyomo.environ as pyo
 from pyomo.core import Constraint, Var
+from pyomo.opt import SolverStatus, TerminationCondition
 
 from go import configuration
 from go.solvers import GoSolver
@@ -347,8 +348,8 @@ def west_linear_multi(
         )
 
         # ensure that the solver termination condition is optimal
-        if result.solver.termination_condition != pyo.TerminationCondition.optimal:
-            logger.error(f"Day {day}: Optimization did not converge to an optimal solution. Termination condition: {result.solver.termination_condition}")
+        if (result.solver.termination_condition != pyo.TerminationCondition.optimal) or (result.solver.status != SolverStatus.ok):
+            logger.error(f"Day {day}: Optimization did not converge to an optimal solution. Termination condition: {result.solver.termination_condition}. Solver status: {result.solver.status}.")
             
             if save_restart_file:
 
@@ -365,6 +366,32 @@ def west_linear_multi(
 
         logger.info(f"Day {day}: Processing optimization result")
         instance.solutions.load_from(result)
+
+        # check for negative generations, since HiGHs sometimes allows extreme out of bounds generations
+        # if found, trigger retry logic
+        logger.info(f"Day {day}: Checking for negative generation")
+        has_negative_generation = False
+        for v in instance.component_objects(Var, active=True):
+            a = str(v)
+            if a == 'mwh':
+                varobject = getattr(instance, str(v))
+                for index in varobject:
+                    if (index[1] > 0) and (index[1] < 25):
+                        if varobject[index].value < -1e-3:
+                            has_negative_generation = True
+                            logger.error(f"Day {day}: Generator {index[0]} has negative generation {varobject[index].value} at hour {index[1]}.")
+        if has_negative_generation:
+            if save_restart_file:
+
+                logger.info(f"Day {day}: Writing restart file")
+
+                with open(local_restart_file, "wb") as f:
+                    cloudpickle.dump(restart_data, f)
+
+                logger.info(f'Day {restart_data["day"]}: Restart file written to {local_restart_file}.')
+
+            raise RuntimeError(f"Optimization failed on day {day} due to negative generation.")
+                
 
         for c in instance.component_objects(Constraint, active=True):
             cobject = getattr(instance, str(c))
