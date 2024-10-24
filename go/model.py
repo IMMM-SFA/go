@@ -425,6 +425,7 @@ class Model:
             # if it fails, try the next one
             except Exception as e:
                 solver_exception = e
+                self.logger.error(f"{solver_exception}")
                 pass 
 
         if success:

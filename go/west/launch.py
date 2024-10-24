@@ -181,6 +181,7 @@ def west_linear_multi(
         raise AssertionError(msg)
 
     # max here can be (1, 365)
+    restart_data = None
     for day in range(start_day, n_days + 1):
 
         logger.info(f"Day {day}: Set up optimization")
@@ -351,7 +352,7 @@ def west_linear_multi(
         if (result.solver.termination_condition != pyo.TerminationCondition.optimal) or (result.solver.status != SolverStatus.ok):
             logger.error(f"Day {day}: Optimization did not converge to an optimal solution. Termination condition: {result.solver.termination_condition}. Solver status: {result.solver.status}.")
             
-            if save_restart_file:
+            if save_restart_file and (restart_data is not None):
 
                 logger.info(f"Day {day}: Writing restart file")
 
@@ -380,8 +381,9 @@ def west_linear_multi(
                         if varobject[index].value < -1e-3:
                             has_negative_generation = True
                             logger.error(f"Day {day}: Generator {index[0]} has negative generation {varobject[index].value} at hour {index[1]}.")
+                            
         if has_negative_generation:
-            if save_restart_file:
+            if save_restart_file and (restart_data is not None):
 
                 logger.info(f"Day {day}: Writing restart file")
 
@@ -525,6 +527,14 @@ def west_linear_multi(
         # -- this is only set to True when the model cannot solve and 
         # -- the SOLVER RETRY MODE is activated.
         if break_run:
+            if save_restart_file and (restart_data is not None):
+
+                logger.info(f"Day {day}: Writing restart file")
+
+                with open(local_restart_file, "wb") as f:
+                    cloudpickle.dump(restart_data, f)
+
+                logger.info(f'Day {restart_data["day"]}: Restart file written to {local_restart_file}.')
             break
 
     vlt_angle_pd = pd.DataFrame(vlt_angle, columns=('Node', 'Time', 'Value'))
