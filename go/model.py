@@ -5,7 +5,9 @@ from typing import Union, List
 
 import numpy as np
 
+from go import configuration
 from go.west.launch import west_linear_multi
+from go.utilities import get_prior_restart_file_day
 
 
 class Model:
@@ -76,8 +78,7 @@ class Model:
 
     def retry(        
         self, 
-        config_file: Union[str, None] = None, 
-        restart_file: Union[None, str] = None,
+        config_file: Union[str, None] = None,
         n_days: int = 365,
         n_seeds: int = 1,
         solver_list: List[str] = ["simplex", "ipm", "pdlp"],
@@ -90,6 +91,8 @@ class Model:
         simplex_primal_edge_weight_strategy_list: List[int] = [-1],
         pdlp_e_restart_method: int = 2,
         pdlp_d_gap_tol_list: List[float] = [1e-4, 1e-3],
+        retry_backoff: bool = True,
+        restart_write_frequency: int = 10,
         **kwargs
     ):
         """
@@ -102,11 +105,6 @@ class Model:
 
         :param config_file:                                 Path to the configuration file. Default is None.
         :type config_file:                                  Union[str, None]
-
-        :param restart_file:                                Full path to cloudpickled restart file.  If no file is provided, the model will search for one
-                                                            in the restart_file_directory specified by the user in the configuration file.
-                                                            Default None
-        :type restart_file:                                 Union[None, str]
 
         :param n_days:                                      The number of the day in the calendar year to process through.
         :type n_days:                                       int; Default 365
@@ -312,6 +310,12 @@ class Model:
                                                             Default is [1e-4, 1e-3]
         :type pdlp_d_gap_tol_list:                          List[float]
 
+        :param retry_backoff:                               If True, after a retry sequence fails, backup to a previous restart file and try again
+        :type retry_backoff:                                bool
+
+        :param restart_write_frequency:                     Write a restart file after this many days.
+        :type restart_write_frequency:                      int
+
         :param kwargs:                                      Additional keyword arguments.
         :type kwargs:                                       dict
         """
@@ -413,9 +417,10 @@ class Model:
                     config_file=config_file,
                     solver_name=self.solver_name,
                     solver_params=local_solver_parameters,
-                    restart_file=restart_file,
+                    restart_day=None,
                     n_days=n_days,
                     break_run=True,
+                    restart_write_frequency=restart_write_frequency,
                     **kwargs
                 )
 
@@ -434,7 +439,7 @@ class Model:
             if n_days > success_day:
                 self.run(
                     config_file=config_file,
-                    restart_file=restart_file,
+                    restart_day=None,
                     n_days=n_days,
                     retry_n_seeds=n_seeds,
                     retry_solver_list=solver_list,
@@ -447,6 +452,8 @@ class Model:
                     retry_simplex_primal_edge_weight_strategy_list=simplex_primal_edge_weight_strategy_list,
                     retry_pdlp_e_restart_method=pdlp_e_restart_method,
                     retry_pdlp_d_gap_tol_list=pdlp_d_gap_tol_list,
+                    restart_write_frequency=restart_write_frequency,
+                    retry_backoff = False,
                     **kwargs
                 )
 
@@ -454,14 +461,42 @@ class Model:
                 self.logger.info("All days completed successfully.")
 
         else:
-            self.logger.error("[SOLVER RETRY MODE] Unable to find solution.  Exiting.")
-            raise solver_exception
+            if retry_backoff:
+                # backup to a previous restart file and start from there with a new seed
+                config = configuration.generate_config(config_file=config_file, **kwargs)
+                prior_restart_day = get_prior_restart_file_day(config.restart_file_directory)
+                if prior_restart_day is None:
+                    self.logger.error("[SOLVER RETRY MODE] Unable to find solution.  Exiting.")
+                    raise solver_exception
+                else:
+                    # update seed
+                    self.solver_params["random_seed"] = np.random.choice(Model.MAX_RANDOM_SEED_VALUE)
+                    self.run(
+                        config_file=config_file,
+                        restart_day=prior_restart_day,
+                        n_days=n_days,
+                        retry_n_seeds=n_seeds,
+                        retry_solver_list=solver_list,
+                        retry_dual_feasibility_tolerance_list=dual_feasibility_tolerance_list,
+                        retry_primal_feasibility_tolerance_list=primal_feasibility_tolerance_list,
+                        retry_ipm_optimality_tolerance_list=ipm_optimality_tolerance_list,
+                        retry_simplex_strategy_list=simplex_strategy_list,
+                        retry_simplex_scale_strategy_list=simplex_scale_strategy_list,
+                        retry_simplex_dual_edge_weight_strategy_list=simplex_dual_edge_weight_strategy_list,
+                        retry_simplex_primal_edge_weight_strategy_list=simplex_primal_edge_weight_strategy_list,
+                        retry_pdlp_e_restart_method=pdlp_e_restart_method,
+                        retry_pdlp_d_gap_tol_list=pdlp_d_gap_tol_list,
+                        restart_write_frequency=restart_write_frequency,
+                        **kwargs
+                    )
+            else:
+                self.logger.error("[SOLVER RETRY MODE] Unable to find solution.  Exiting.")
+                raise solver_exception
 
     def run(
         self, 
         config_file: Union[str, None] = None, 
-        restart_file: Union[None, str] = None,
-        reset_restart_file: bool = False,
+        restart_day: Union[None, int] = None,
         n_days: int = 365,
         allow_retry: bool = True,
         retry_n_seeds: int = 1,
@@ -475,6 +510,8 @@ class Model:
         retry_simplex_primal_edge_weight_strategy_list: List[int] = [-1],
         retry_pdlp_e_restart_method: int = 2,
         retry_pdlp_d_gap_tol_list: List[float] = [1e-4, 1e-3],
+        retry_backoff: bool = True,
+        restart_write_frequency: int = 10,
         **kwargs
     ):
         """
@@ -487,18 +524,13 @@ class Model:
         OpenAI. (2024). Response generated by ChatGPT on the topic of optimization solvers. Retrieved August 29, 2024, from https://chat.openai.com/.
 
 
-        :param config_file: The configuration file to use. If None, the default configuration is used.
-        :type config_file: Union[str, None]
+        :param config_file:                                 The configuration file to use. If None, the default configuration is used.
+        :type config_file:                                  Union[str, None]
 
-        :param restart_file:                                Full path to cloudpickled restart file.  If no file is provided, the model will search for one
-                                                            in the restart_file_directory specified by the user in the configuration file.
+        :param restart_day:                                 Day of the restart file to use. There must be a restart file for that day available.
+                                                            If None, uses the largest day available among restart files or starts from day 1 if none exist. 
                                                             Default None
-        :type restart_file:                                 Union[None, str]
-
-        :param reset_restart_file:                          If True, any existing restart file will be deleted.  This is usualy used if the user wants
-                                                            to start from day 1 but has already done a few runs and thus generated a restart file.
-                                                            Default False
-        :type reset_restart_file:                           bool
+        :type restart_day:                                  Union[None, int]
 
         :param n_days:                                      The number of the day in the calendar year to process through.
                                                             Default 365       
@@ -711,7 +743,12 @@ class Model:
                                                             Default is [1e-4, 1e-3]
         :type retry_pdlp_d_gap_tol_list:                    List[float]
 
-        
+        :param retry_backoff:                               If True, after a retry sequence fails, backup to a previous restart file and try again
+        :type retry_backoff:                                bool
+
+        :param restart_write_frequency:                     Write a restart file after this many days.
+        :type restart_write_frequency:                      int
+
         :param kwargs:                                      Additional keyword arguments to pass to the model.
         :type kwargs:                                       dict
         """
@@ -722,9 +759,9 @@ class Model:
                 config_file=config_file,
                 solver_name=self.solver_name,
                 solver_params=self.solver_params,
-                restart_file=restart_file,
                 n_days=n_days,
-                reset_restart_file=reset_restart_file,
+                restart_day=restart_day,
+                restart_write_frequency=restart_write_frequency,
                 **kwargs
             )
 
@@ -735,7 +772,6 @@ class Model:
             if allow_retry:
                 self.retry(
                     config_file=config_file,
-                    restart_file=restart_file,
                     n_days=n_days,
                     n_seeds=retry_n_seeds,
                     solver_list=retry_solver_list,
@@ -748,6 +784,8 @@ class Model:
                     simplex_primal_edge_weight_strategy_list=retry_simplex_primal_edge_weight_strategy_list,
                     pdlp_e_restart_method=retry_pdlp_e_restart_method,
                     pdlp_d_gap_tol_list=retry_pdlp_d_gap_tol_list,
+                    retry_backoff=retry_backoff,
+                    restart_write_frequency=restart_write_frequency,
                 )
 
             else:

@@ -12,7 +12,7 @@ from pyomo.opt import SolverStatus, TerminationCondition
 from go import configuration
 from go.solvers import GoSolver
 from go.west.linear import model_west_linear_multi
-from go.utilities import write_solver_parameters
+from go.utilities import write_solver_parameters, write_restart_file, get_restart_file
 
 
 def west_linear_multi(
@@ -20,10 +20,10 @@ def west_linear_multi(
     solver_name: str = "appsi_highs",
     solver_params: Union[None, dict] = None,
     n_days: int = 365,
-    restart_file: Union[None, str] = None,
+    restart_day: Union[None, int] = None,
     save_restart_file: bool = True,
     break_run: bool = False,
-    reset_restart_file: bool = False,
+    restart_write_frequency: int = 10,
     **kwargs
 ):
     """
@@ -44,10 +44,10 @@ def west_linear_multi(
                                 Default 365
     :type n_days:               int
 
-    :param restart_file:        Full path to cloudpickled restart file.  If no file is provided, the model will search for one
-                                in the restart_file_directory specified by the user in the configuration file.
+    :param restart_day:         Day of the restart file to use. There must be a restart file for that day available.
+                                If None, uses the largest day available among restart files or starts from day 1 if none exist. 
                                 Default None
-    :type restart_file:         Union[None, str]
+    :type restart_day:          Union[None, int]
 
     :param save_restart_file:   If True, save a restart file after ever timestep. 
                                 Default True
@@ -58,10 +58,8 @@ def west_linear_multi(
                                 Default False
     :type break_run:            bool
 
-    :param reset_restart_file:  If True, any existing restart file will be deleted.  This is usualy used if the user wants
-                                to start from day 1 but has already done a few runs and thus generated a restart file.
-                                Default False
-    :type reset_restart_file:   bool
+    :param restart_write_frequency: Write a restart file after this many days.
+    :type restart_write_frequency:  int
 
     """
 
@@ -87,29 +85,11 @@ def west_linear_multi(
         solver_params=solver_params
     ).go_solver
 
-    # Where the new restart file will saved to; this will not overwrite the restart file
-    # -- passed in by the user unless they are the same path.  This gives the user the 
-    # -- ability to pass in a restart file from another model if needed.
-    local_restart_file = os.path.join(
-        config.restart_file_directory,
-        f"model_restart_file.pkl"
+    # get restart file
+    restart_file = get_restart_file(
+        dir=config.restart_file_directory,
+        day=restart_day,
     )
-
-    if reset_restart_file:
-        try:
-            os.remove(local_restart_file)
-            logger.info(f"Deleted existing restart file {local_restart_file}")
-        except PermissionError:
-            logger.error(f"Permission denied: Unable to delete the restart file {local_restart_file}")
-            raise PermissionError(f"Permission denied: Unable to delete the restart file {local_restart_file}")
-
-    # if a restart file is provided or exists then use it
-    if restart_file is None and os.path.exists(local_restart_file):
-        restart_file = local_restart_file
-    elif restart_file is None and os.path.exists(local_restart_file) is False:
-        restart_file = None 
-    else:
-        restart_file = restart_file
 
     # start from scratch if no restart file has been provided or previously created
     if restart_file is None:
@@ -353,12 +333,15 @@ def west_linear_multi(
             
             if save_restart_file:
 
-                logger.info(f"Day {day}: Writing restart file")
-
-                with open(local_restart_file, "wb") as f:
-                    cloudpickle.dump(restart_data, f)
-
-                logger.info(f'Day {restart_data["day"]}: Restart file written to {local_restart_file}.')
+                # write restart file for previous day
+                new_restart_file_path = write_restart_file(
+                    dir=config.restart_file_directory,
+                    day=day - 1,
+                    restart_data=restart_data,
+                )
+                
+                if new_restart_file_path is not None:
+                    logger.info(f'Day {day - 1}: Restart file written to {new_restart_file_path}.')
 
             raise RuntimeError(f"Optimization failed on day {day} with termination condition: {result.solver.termination_condition}")
 
@@ -380,15 +363,19 @@ def west_linear_multi(
                         if varobject[index].value < -1e-3:
                             has_negative_generation = True
                             logger.error(f"Day {day}: Generator {index[0]} has negative generation {varobject[index].value} at hour {index[1]}.")
+        
         if has_negative_generation:
             if save_restart_file:
 
-                logger.info(f"Day {day}: Writing restart file")
-
-                with open(local_restart_file, "wb") as f:
-                    cloudpickle.dump(restart_data, f)
-
-                logger.info(f'Day {restart_data["day"]}: Restart file written to {local_restart_file}.')
+                # write restart file for previous day
+                new_restart_file_path = write_restart_file(
+                    dir=config.restart_file_directory,
+                    day=day - 1,
+                    restart_data=restart_data,
+                )
+                
+                if new_restart_file_path is not None:
+                    logger.info(f'Day {day - 1}: Restart file written to {new_restart_file_path}.')
 
             raise RuntimeError(f"Optimization failed on day {day} due to negative generation.")
                 
@@ -518,6 +505,16 @@ def west_linear_multi(
                 "day": day,
                 "solver_parameters": solver_parameters
             }
+
+            if day % restart_write_frequency == 0:
+                # write restart file for day
+                new_restart_file_path = write_restart_file(
+                    dir=config.restart_file_directory,
+                    day=day,
+                    restart_data=restart_data,
+                )
+                if new_restart_file_path is not None:
+                    logger.info(f'Day {day}: Restart file written to {new_restart_file_path}.')
 
         logger.info(f'Day {day} completed.')
 
