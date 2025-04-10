@@ -1,9 +1,9 @@
 import pyomo.environ as pyo
 
 
-def SysCost(model):
+def SysCost(model, dr_cost):
     """Objective function that calculates the total system cost based on the generation,
-    slack, hydro, wind, solar, exchange, offshore wind, charging storage, discharging storage and power flow costs.
+    slack, hydro, wind, solar, exchange, offshore wind, charging storage, discharging storage, demand response up, demand response down, and power flow costs.
 
     Returns:
     float: Total system cost
@@ -23,7 +23,9 @@ def SysCost(model):
     powerflow_cost = sum(model.DummyFlow[l, i] * 0.01 for l in model.lines for i in model.hh_periods)
     charging_cost = sum(model.Charge[j, i] * 0.001 for i in model.hh_periods for j in model.Storage)
     discharging_cost = sum(model.Discharge[j, i] * 0.001 for i in model.hh_periods for j in model.Storage)
-    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost + charging_cost + discharging_cost
+    dr_down_cost = sum(model.DR_Down[z, i] * dr_cost for i in model.hh_periods for z in model.buses)
+    dr_up_cost = sum(model.DR_Up[z, i] * 0.005 for i in model.hh_periods for z in model.buses)
+    return gen + slack + hydro_cost + wind_cost + solar_cost + exchange_cost + offshorewind_cost + powerflow_cost + charging_cost + discharging_cost + dr_down_cost + dr_up_cost
 
 
 def Ramp1(model, j, i):
@@ -178,7 +180,9 @@ def Nodal_Balance(model, z, i):
     must_run = model.HorizonMustrunLimit[z, i]
     storage_charge = sum(model.Charge[j,i]*model.BustoStorageMap[j,z] for j in model.Storage)
     storage_discharge = sum(model.Discharge[j,i]*model.BustoStorageMap[j,z] for j in model.Storage)
-    return gen + slack + must_run - power_flow == model.HorizonDemand[z,i] + storage_charge - storage_discharge
+    demand_response_up = model.DR_Up[z, i]
+    demand_response_down = model.DR_Down[z, i]
+    return gen + slack + must_run - power_flow == model.HorizonDemand[z,i] + storage_charge - storage_discharge + demand_response_up - demand_response_down
 
 
 def Flow_line(model, l, i):
@@ -363,7 +367,60 @@ def SimChargeDischarge(model, j, i):
     return model.Discharge[j,i] <= model.discharge_rate[j]-((model.discharge_rate[j]/model.charge_rate[j])*model.Charge[j,i])
 
 
-def model_west_linear_multi(*args, **kwargs):
+def MaxDR_Up(model, z, i):
+    """Maximum demand response up amount constraint 
+
+    Parameters:
+    z (int): Index of demand response node
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the maximum demand response up amount 
+    """
+    return model.DR_Up[z, i] <= model.HorizonDR_up[z, i]
+
+
+def MaxDR_Down(model, z, i):
+    """Maximum demand response down amount constraint 
+
+    Parameters:
+    z (int): Index of demand response node
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for the maximum demand response down amount 
+    """
+    return model.DR_Down[z, i] <= model.HorizonDR_down[z, i]
+
+
+def Sim_DRUp_DRDown(model, z, i):
+    """Constraint to minimize simultaneous demand response up and demand response down
+
+    Parameters:
+    z (int): Index of demand response node
+    i (int): Index of the hour
+
+    Returns:
+    pyo.Constraint: Constraint object for minimizing simultaneous demand response up and demand response down
+    """
+    return model.DR_Down[z, i] <= model.HorizonDR_down[z, i]-((model.HorizonDR_down[z, i]/model.HorizonDR_up[z, i])*model.DR_Up[z, i])
+    
+
+def DR_shifting(model, z):
+    """Constraint to shift the demand within a day with demand response
+
+    Parameters:
+    z (int): Index of demand response node
+    
+    Returns:
+    pyo.Constraint: Constraint object for shifting the demand within a day with demand response (i.e., total demand within a day does not change but only shifts between hours)
+    """
+    daily_DR_down = sum(model.DR_Down[z, i] for i in model.hh_periods)
+    daily_DR_up = sum(model.DR_Up[z, i] for i in model.hh_periods)
+    return daily_DR_down == daily_DR_up
+
+
+def model_west_linear_multi(dr_cost, *args, **kwargs):
     """This class defines an abstract model for a linear optimization problem for the Western Interconnection."""
 
     # instantiate model
@@ -532,6 +589,14 @@ def model_west_linear_multi(*args, **kwargs):
     # Mapping of storage facilities to buses
     model.BustoStorageMap = pyo.Param(model.Storage, model.buses)
 
+    # Maximum demand response up amount
+    model.SimDR_up = pyo.Param(model.buses, model.SH_periods, within=pyo.NonNegativeReals)
+    model.HorizonDR_up = pyo.Param(model.buses, model.hh_periods, within=pyo.NonNegativeReals, mutable=True)
+    
+    # Maximum demand response down amount
+    model.SimDR_down = pyo.Param(model.buses, model.SH_periods, within=pyo.NonNegativeReals)
+    model.HorizonDR_down = pyo.Param(model.buses, model.hh_periods, within=pyo.NonNegativeReals, mutable=True)
+
     # Full range of time series information
     # Total number of simulation hours
     model.SimHours = pyo.Param(within=pyo.PositiveIntegers)
@@ -645,8 +710,14 @@ def model_west_linear_multi(*args, **kwargs):
     # Discharging variables of batteries
     model.Discharge = pyo.Var(model.Storage, model.hh_periods, within=pyo.NonNegativeReals, initialize=0)
 
+    # Demand response up variables
+    model.DR_Up = pyo.Var(model.buses, model.hh_periods, within=pyo.NonNegativeReals, initialize=0)
+
+    # Demand response down variables
+    model.DR_Down = pyo.Var(model.buses, model.hh_periods, within=pyo.NonNegativeReals, initialize=0)
+    
     # Objective function to minimize system cost
-    model.SystemCost = pyo.Objective(rule=SysCost, sense=pyo.minimize)
+    model.SystemCost = pyo.Objective(rule=SysCost(dr_cost), sense=pyo.minimize)
 
     # Ramp up constraint
     model.RampCon1 = pyo.Constraint(model.Thermal, model.ramp_periods, rule=Ramp1)
@@ -722,5 +793,17 @@ def model_west_linear_multi(*args, **kwargs):
 
     # Simultaneous charge and discharge constraint
     model.SimChargeDischarge_Constraint = pyo.Constraint(model.Storage, model.hh_periods, rule=SimChargeDischarge)
+
+    # Maximum demand response up constraint
+    model.MaxDR_Up_Constraint = pyo.Constraint(model.buses, model.hh_periods, rule=MaxDR_Up)
+
+    # Maximum demand response down constraint
+    model.MaxDR_Down_Constraint = pyo.Constraint(model.buses, model.hh_periods, rule=MaxDR_Down)
+
+    # Simultaneous demand response up and demand response down constraint
+    model.Sim_DRUp_DRDown_Constraint = pyo.Constraint(model.buses, model.hh_periods, rule=Sim_DRUp_DRDown)
+
+    # Shifting the demand within a day with demand response constraint
+    model.DR_shifting_Constraint = pyo.Constraint(model.buses, rule=DR_shifting)
 
     return model

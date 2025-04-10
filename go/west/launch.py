@@ -138,6 +138,8 @@ def west_linear_multi(
         charge=[]
         discharge=[]
         SoC=[]
+        dr_up = []
+        dr_down = []
 
         # storing solver parameters
         solver_parameters = {}
@@ -160,6 +162,8 @@ def west_linear_multi(
         charge = restart_data["charge"]
         discharge = restart_data["discharge"]
         SoC = restart_data["SoC"]
+        dr_up = restart_data["dr_up"]
+        dr_down = restart_data["dr_down"]
         solver_parameters = restart_data["solver_parameters"]
 
         # make the start day one day ahead of the last day to solve
@@ -214,6 +218,16 @@ def west_linear_multi(
             # load OffshoreWind time series data
             for i in horizon_hours_series:
                 instance.HorizonOffshoreWind[z, i] = instance.SimOffshoreWind[z, (day - 1) * 24 + i]
+
+        for z in instance.buses:
+            # load demand response up time series data
+            for i in horizon_hours_series:
+                instance.HorizonDR_up[z, i] = instance.SimDR_up[z, (day - 1) * 24 + i]
+
+        for z in instance.buses:
+            # load demand response down time series data
+            for i in horizon_hours_series:
+                instance.HorizonDR_down[z, i] = instance.SimDR_down[z, (day - 1) * 24 + i]
 
         for z in instance.Thermal:
             # load fuel prices for thermal generators
@@ -486,7 +500,17 @@ def west_linear_multi(
             if a == 'Discharge':
                 for index in varobject:
                     if int(index[1] > 0 and index[1] < 25):
-                        discharge.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value))  
+                        discharge.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value)) 
+
+            if a == 'DR_Up':
+                for index in varobject:
+                    if int(index[1] > 0 and index[1] < 25):
+                        dr_up.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value)) 
+
+            if a == 'DR_Down':
+                for index in varobject:
+                    if int(index[1] > 0 and index[1] < 25):
+                        dr_down.append((index[0], index[1] + ((day - 1) * 24), varobject[index].value)) 
 
             # Passing last hour of generation for each generator to the first hour of next day
             for j in instance.Dispatchable:
@@ -514,6 +538,8 @@ def west_linear_multi(
                 "charge": charge,
                 "discharge": discharge,
                 "SoC": SoC,
+                "dr_up": dr_up,
+                "dr_down": dr_down,
                 "slack": slack,
                 "vlt_angle": vlt_angle,
                 "duals": duals,
@@ -545,6 +571,8 @@ def west_linear_multi(
     SoC_pd = pd.DataFrame(SoC, columns=('Storage','Time','Value'))
     discharge_pd = pd.DataFrame(discharge, columns=('Storage','Time','Value'))
     charge_pd = pd.DataFrame(charge, columns=('Storage','Time','Value'))
+    dr_up_pd = pd.DataFrame(dr_up, columns=('Node','Time','Value'))
+    dr_down_pd = pd.DataFrame(dr_down, columns=('Node','Time','Value'))
 
     # to save outputs
     vlt_angle_pd.to_parquet(config.vlt_angle_file, index=False)
@@ -555,6 +583,8 @@ def west_linear_multi(
     SoC_pd.to_parquet(config.SoC_file, index=False)
     discharge_pd.to_parquet(config.discharge_file, index=False)
     charge_pd.to_parquet(config.charge_file, index=False)
+    dr_up_pd.to_parquet(config.dr_up_file, index=False)
+    dr_down_pd.to_parquet(config.dr_down_file, index=False)
 
     # write out the solver parameters as a JSON file
     write_solver_parameters(

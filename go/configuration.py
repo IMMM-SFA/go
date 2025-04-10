@@ -65,6 +65,10 @@ class Config:
         The path to the storage parameters file.
     bus_to_storage_matrix_file : str
         The path to the bus to storage matrix file.
+    max_dr_up_file : str
+        The path to the nodal demand response up file.
+    max_dr_down_file : str
+        The path to the nodal demand response down file.
     generator_outage_file : str
         The path to the generator outage cat file.
     dat_file : str
@@ -89,6 +93,10 @@ class Config:
         The path to the storage discharge file.
     charge_file : str
         The path to the storage charge file.
+    dr_up_file : str
+        The path to the demand response up results file.
+    dr_down_file : str
+        The path to the demand response down results file.
     restart_file_directory: str
         The directory path to save the model restart file to
 
@@ -111,6 +119,8 @@ class Config:
     ba_to_ba_transmission_matrix_file: str
     storage_params_file: str
     bus_to_storage_matrix_file: str
+    max_dr_up_file: str
+    max_dr_down_file: str
     generator_outage_file: str
     dat_file: str
     thermal_generators_file: str
@@ -123,6 +133,8 @@ class Config:
     SoC_file: str
     discharge_file: str
     charge_file: str
+    dr_up_file: str
+    dr_down_file: str
     restart_file_directory: str
 
 

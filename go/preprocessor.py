@@ -126,6 +126,10 @@ def build_data_file(
     storage_params = pd.read_csv(config.storage_params_file, header=0)
     bus_to_storage_matrix = pd.read_csv(config.bus_to_storage_matrix_file, header=0)
 
+    # Read maximum demand response up and demand response down data
+    df_max_dr_up = pd.read_csv(config.max_dr_up_file, header=0)
+    df_max_dr_down = pd.read_csv(config.max_dr_down_file, header=0)
+    
     ######=================================================########
     ######               Segment A.3                       ########
     ######=================================================########
@@ -435,6 +439,20 @@ def build_data_file(
                 f.write(z + '_HYDRO' + '\t' + str(h + 1) + '\t' + str(df_hydro_TOTAL.loc[h, z]) + '\n')
         f.write(';\n\n')
 
+        # max demand response up (hourly)
+        f.write('param:' + '\t' + 'SimDR_up:=' + '\n')
+        for z in all_nodes:
+            for h in range(0, len(df_max_dr_up)):
+                f.write(z + '\t' + str(h + 1) + '\t' + str(df_max_dr_up.loc[h, z]) + '\n')
+        f.write(';\n\n')
+
+        # max demand response down (hourly)
+        f.write('param:' + '\t' + 'SimDR_down:=' + '\n')
+        for z in all_nodes:
+            for h in range(0, len(df_max_dr_down)):
+                f.write(z + '\t' + str(h + 1) + '\t' + str(df_max_dr_down.loc[h, z]) + '\n')
+        f.write(';\n\n')
+        
         ###### System-wide hourly reserve
         # f.write('param' + '\t' + 'SimReserves:=' + '\n')
         # # for h in range(0,240):
