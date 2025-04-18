@@ -419,9 +419,19 @@ def DR_shifting(model, z):
     Returns:
     pyo.Constraint: Constraint object for shifting the demand within a day with demand response (i.e., total demand within a day does not change but only shifts between hours)
     """
-    daily_DR_down = sum(model.DR_Down[z, i] for i in model.hh_periods)
-    daily_DR_up = sum(model.DR_Up[z, i] for i in model.hh_periods)
-    return daily_DR_down == daily_DR_up
+    
+    daily_DR_down_limit = sum(model.HorizonDR_down[z, i].value for i in model.hh_periods)
+    daily_DR_up_limit = sum(model.HorizonDR_up[z, i].value for i in model.hh_periods)
+
+    if daily_DR_down_limit != 0 and daily_DR_up_limit != 0:
+
+        daily_DR_down = sum(model.DR_Down[z, i] for i in model.hh_periods)
+        daily_DR_up = sum(model.DR_Up[z, i] for i in model.hh_periods)
+
+        return daily_DR_down == daily_DR_up
+    
+    else:
+        return pyo.Constraint.Skip
 
 
 def model_west_linear_multi(*args, **kwargs):
