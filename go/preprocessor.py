@@ -457,7 +457,23 @@ def build_data_file(
             for h in range(0, simulation_hours):
                 f.write(z + '\t' + str(h + 1) + '\t' + str(df_max_dr_down.loc[h, z]) + '\n')
         f.write(';\n\n')
-        
+
+        # initilizing max horizon demand response up (this is done to save horizon parameters for the first day so that constraints depending on if/else conditions work correctly when model is built for the first time)
+        # This constraint will provide signal of the nodal demand response participation for if/else constraints, which will be used throughout the whole year (if there is nodal demand response participation in day 1, it is expected to continue until the last day of simulation)
+        f.write('param:' + '\t' + 'HorizonDR_up:=' + '\n')
+        for z in all_nodes:
+            for h in range(0, planning_horizon_hours):
+                f.write(z + '\t' + str(h + 1) + '\t' + str(df_max_dr_up.loc[h, z]) + '\n')
+        f.write(';\n\n')
+
+        # initilizing max horizon demand response down (this is done to save horizon parameters for the first day so that constraints depending on if/else conditions work correctly when model is built for the first time)
+        # This constraint will provide signal of the nodal demand response participation for if/else constraints, which will be used throughout the whole year (if there is nodal demand response participation in day 1, it is expected to continue until the last day of simulation)
+        f.write('param:' + '\t' + 'HorizonDR_down:=' + '\n')
+        for z in all_nodes:
+            for h in range(0, planning_horizon_hours):
+                f.write(z + '\t' + str(h + 1) + '\t' + str(df_max_dr_down.loc[h, z]) + '\n')
+        f.write(';\n\n')
+
         ###### System-wide hourly reserve
         # f.write('param' + '\t' + 'SimReserves:=' + '\n')
         # # for h in range(0,240):
