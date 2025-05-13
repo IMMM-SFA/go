@@ -1,5 +1,4 @@
 [![DOI](https://zenodo.org/badge/375788078.svg)](https://doi.org/10.5281/zenodo.15399794)
-[![build](https://github.com/IMMM-SFA/go/actions/workflows/build.yml/badge.svg)](https://github.com/IMMM-SFA/go/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/IMMM-SFA/go/branch/initial/graph/badge.svg?token=ESUiPYPocp)](https://codecov.io/gh/IMMM-SFA/go)
 <add doi badge here>
 
