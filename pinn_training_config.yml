@@ -19,5 +19,5 @@ pinn:
   constraint_weight: 10.0
 training:
   n_days: 30
-  restart_write_frequency: 7
+  restart_write_frequency: 30
   save_restart_file: true

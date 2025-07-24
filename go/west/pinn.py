@@ -548,12 +548,6 @@ class PhysicsLoss:
         charge = predictions['charge'].view(-1, n_storage, n_hours)
         discharge = predictions['discharge'].view(-1, n_storage, n_hours)
         
-        # Debug tensor shapes
-        # print(f"objective_loss: mwh shape = {mwh.shape}")
-        # print(f"objective_loss: fuel_prices shape = {fuel_prices.shape}")
-        # print(f"objective_loss: heat_rates shape = {heat_rates.shape}")
-        # print(f"objective_loss: n_generators = {n_generators}")
-        
         # Generation cost
         gen_cost = torch.sum(mwh * heat_rates.unsqueeze(-1) * fuel_prices.unsqueeze(-1), dim=(1, 2))
         
@@ -589,10 +583,6 @@ class PINNTrainer:
     def train_step(self, inputs: torch.Tensor, targets: Dict[str, torch.Tensor]) -> Dict[str, float]:
         """Single training step"""
         try:
-            # print(f"train_step: inputs shape = {inputs.shape}")
-            # print(f"train_step: targets keys = {list(targets.keys())}")
-            # for key, value in targets.items():
-            #     print(f"  {key}: {value.shape}")
             
             self.optimizer.zero_grad()
             
