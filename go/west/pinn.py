@@ -7,13 +7,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 import cloudpickle
 from dataclasses import dataclass
 
 from go import configuration
 from go.west.linear import model_west_linear_multi
-from go.utilities import write_solver_parameters, write_restart_file, get_restart_file
+from go.utilities import write_restart_file, get_restart_file
 
 
 # Setup logger
