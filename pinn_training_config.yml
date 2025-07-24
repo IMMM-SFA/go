@@ -1,0 +1,23 @@
+data:
+  base_path: /Users/d3y010/projects/go/data/rcfs/projects/im3/exp_b/exp_b_multi_model_coupling_west/experiment_runs/run_110824/rcp45cooler_ssp3/go
+  corrected_configs_dir: /Users/d3y010/projects/go/data/rcfs/projects/im3/exp_b/exp_b_multi_model_coupling_west/experiment_runs/run_110824/rcp45cooler_ssp3/go/input/go_config_yml_corrected
+  input_dir: /Users/d3y010/projects/go/data/rcfs/projects/im3/exp_b/exp_b_multi_model_coupling_west/experiment_runs/run_110824/rcp45cooler_ssp3/go/input
+  output_dir: /Users/d3y010/projects/go/data/rcfs/projects/im3/exp_b/exp_b_multi_model_coupling_west/experiment_runs/run_110824/rcp45cooler_ssp3/go/output/native_output
+pinn:
+  batch_size: 512  # Increased from 128 for better MPS performance
+  device: mps  # Keep MPS for Apple Silicon
+  hidden_layers:
+  - 256  # Reduced from 256
+  - 256  # Reduced from 256
+  - 256  # Reduced from 256
+  - 256
+  learning_rate: 0.001  # Reduced from 0.01 for better convergence
+  max_epochs: 12000  # Raised to ensure convergence
+  objective_weight: 0.1
+  patience: 2000  # Reduced from 800
+  physics_weight: 100.0  # Reduced from 1000.0
+  constraint_weight: 10.0
+training:
+  n_days: 30
+  restart_write_frequency: 7
+  save_restart_file: true

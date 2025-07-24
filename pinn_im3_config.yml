@@ -1,0 +1,39 @@
+experiment:
+  base_path: /Users/d3y010/projects/go/data/rcfs/projects/im3/exp_b/exp_b_multi_model_coupling_west/experiment_runs/run_110824/rcp45cooler_ssp3/go
+  scenarios:
+  - 2020PI_2020RG_2020TC_2020LD
+  - 2015PI_2015RG_2015TC_2020LD
+  test_years:
+  - 2050
+  - 2055
+  training_years:
+  - 2020
+  - 2025
+  - 2030
+  - 2035
+  - 2040
+  validation_years:
+  - 2045
+  years:
+  - 2020
+  - 2025
+  - 2030
+  - 2035
+  - 2040
+  - 2045
+  - 2050
+  - 2055
+pinn:
+  batch_size: 16
+  constraint_weight: 10.0
+  device: cpu
+  hidden_layers:
+  - 256
+  - 256
+  - 256
+  - 256
+  learning_rate: 0.001
+  max_epochs: 8000
+  objective_weight: 1.0
+  patience: 1000
+  physics_weight: 1.0

@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=57.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "go"
+dynamic = ["version"]
+description = "A grid operations model with Physics-Informed Neural Network (PINN) capabilities for power system optimization"
+readme = "README.md"
+license = {text = "BSD-2-Clause"}
+authors = [
+    {name = "Jordan Kern", email = "jkern@ncsu.edu"}
+]
+maintainers = [
+    {name = "Jordan Kern", email = "jkern@ncsu.edu"}
+]
+keywords = ["grid", "operations", "model", "pinn", "physics-informed", "neural-networks", "optimization"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=5.4.1",
+    "requests>=2.25.1",
+    "pyomo>=6.0.1",
+    "cloudpickle>=3.0.0",
+    "pyarrow>=17.0.0",
+    "numpy>=1.26.4,<2",
+    "pandas>=2.2.2",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "scipy>=1.11.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=0.5.1",
+    "nbsphinx>=0.8.6",
+    "setuptools>=57.0.0",
+    "sphinx>=4.0.2",
+    "sphinx-panels>=0.6.0",
+    "sphinx-rtd-theme>=0.5.2",
+    "twine>=3.4.1",
+    "pytest>=6.2.4",
+    "pytest-cov>=2.12.1",
+]
+pinn = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "scipy>=1.11.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "tensorboard>=2.13.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/IMMM-SFA/go"
+Repository = "https://github.com/IMMM-SFA/go"
+Documentation = "https://github.com/IMMM-SFA/go"
+
+[tool.setuptools]
+packages = ["go", "go.eic", "go.ercot", "go.west"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "go.__version__"}
+
+[tool.setuptools.package-data]
+"*" = ["*.yml", "*.yaml", "*.md", "*.txt"] 

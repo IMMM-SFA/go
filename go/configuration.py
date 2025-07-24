@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import logging
+import os
 from typing import Union
 
 import yaml
@@ -151,6 +152,24 @@ def generate_config(config_file: Union[str, None] = None, **kwargs) -> Config:
 
         config_dict = read_config_file(config_file)
         config = Config(**config_dict)
+
+    # ------------------------------------------------------------------
+    # Path sanitization: transparently map remote /rcfs paths to the local
+    #                    project data mirror.  Any config field that is a
+    #                    string beginning with "/rcfs" is rewritten to
+    #                    start with the local prefix so downstream code
+    #                    does not need to handle this logic explicitly.
+    # ------------------------------------------------------------------
+    LOCAL_RCSF_PREFIX = "/Users/d3y010/projects/go/data/rcfs"
+
+    for field_name, value in list(config.__dict__.items()):
+        if isinstance(value, str) and value.startswith("/rcfs"):
+            # Preserve the remainder of the original path while replacing
+            # the root.  Avoid duplicate slashes by stripping any leading
+            # slash from the remainder.
+            remainder = value[len("/rcfs"):].lstrip("/")
+            new_value = os.path.join(LOCAL_RCSF_PREFIX, remainder)
+            setattr(config, field_name, new_value)
 
     config_parts = config.__dict__
     for i in config_parts.keys():
