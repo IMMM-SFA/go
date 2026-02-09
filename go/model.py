@@ -512,6 +512,9 @@ class Model:
         retry_pdlp_d_gap_tol_list: List[float] = [1e-4, 1e-3],
         retry_backoff: bool = True,
         restart_write_frequency: int = 10,
+        warmstart: bool = False,
+        warmstart_file: Union[str, None] = None,
+        record_results_for_warmstart: bool = False,
         **kwargs
     ):
         """
@@ -749,6 +752,17 @@ class Model:
         :param restart_write_frequency:                     Write a restart file after this many days.
         :type restart_write_frequency:                      int
 
+        :param warmstart:                                   Designates if solver warm start is enabled or not. 
+                                                            Default False
+        :type warmstart:                                    bool
+
+        :param warmstart_file:                              Path to the warm start file where values for each decision variable and corresponding indices are stored.
+        :type warmstart_file:                               str
+
+        :param record_results_for_warmstart:                Saves model results in a .pkl file compatible with warm start procedure afterwards.  
+                                                            Default False
+        :type record_results_for_warmstart:                 bool
+
         :param kwargs:                                      Additional keyword arguments to pass to the model.
         :type kwargs:                                       dict
         """
@@ -762,6 +776,9 @@ class Model:
                 n_days=n_days,
                 restart_day=restart_day,
                 restart_write_frequency=restart_write_frequency,
+                warmstart=warmstart,
+                warmstart_file=warmstart_file,
+                record_results_for_warmstart=record_results_for_warmstart,
                 **kwargs
             )
 

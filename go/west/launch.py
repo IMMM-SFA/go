@@ -24,6 +24,9 @@ def west_linear_multi(
     save_restart_file: bool = True,
     break_run: bool = False,
     restart_write_frequency: int = 10,
+    warmstart: bool = False,
+    warmstart_file: Union[str, None] = None,
+    record_results_for_warmstart: bool = False,
     **kwargs
 ):
     """
@@ -57,6 +60,17 @@ def west_linear_multi(
                                 SOLVER RETRY MODE is initiated.
                                 Default False
     :type break_run:            bool
+
+    :param warmstart:           Designates if solver warm start is enabled or not. 
+                                Default False
+    :type warmstart:            bool
+
+    :param warmstart_file:      Path to the warm start file where values for each decision variable and corresponding indices are stored.
+    :type warmstart_file:       str
+
+    :param record_results_for_warmstart:        Saves model results in a .pkl file compatible with warm start procedure afterwards.  
+                                                Default False
+    :type record_results_for_warmstart:         bool
 
     :param restart_write_frequency: Write a restart file after this many days.
     :type restart_write_frequency:  int
@@ -159,6 +173,18 @@ def west_linear_multi(
             "n_days represents the number of the day in the calendar year to process through."
         )
         raise AssertionError(msg)
+    
+    # If warm start is enabled, reading the file containing warm start information
+    if warmstart:
+        logger.info(f"Warm start is active. Loading initial values...")
+
+        with open(warmstart_file, 'rb') as f:
+            initial_var_values = cloudpickle.load(f)
+
+    # If record_results_for_warmstart enabled, creating a dictionary to store results for future warm starts
+    if record_results_for_warmstart:
+        logger.info(f'Recording for warm start is active.')
+        outputs_for_warmstart = {i: {} for i in range(1, n_days+1)}
 
     # max here can be (1, 365)
     for day in range(start_day, n_days + 1):
@@ -318,13 +344,42 @@ def west_linear_multi(
         else:
             pass
 
+        
+        # If warm start is enabled, loading the initial values for each variable
+        if warmstart:
+
+            daily_init_vals = initial_var_values[day]
+
+            # # Set initial values for variables
+            # for var in instance.component_objects(Var, active=True):
+            #     for index in var:
+            #         if index is None:
+            #             var_name = var.name
+            #             if var_name in daily_init_vals.keys():
+            #                 var.set_value(daily_init_vals[var_name])
+            #         else:
+            #             var_name = f"{var.name}[{index}]"
+            #             if var_name in daily_init_vals.keys():
+            #                 var[index].set_value(daily_init_vals[var_name])
+
+            ########################################################################
+            for v in instance.component_objects(Var, active=True):
+                a = str(v)
+                varobject = getattr(instance, a)
+
+                for index in varobject:
+                    if (index[1] > 0) and (index[1] < 25):
+                        varobject[(index[0], index[1])].set_value(daily_init_vals[f"{a}[{(index[0], index[1])}]"])
+            ########################################################################
+                    
         logger.info(f"Day {day}: Start optimization")
         
         result = opt.solve(
             instance,
             tee=True,
             symbolic_solver_labels=True,
-            load_solutions=False
+            load_solutions=False,
+            warmstart=warmstart
         )
 
         # ensure that the solver termination condition is optimal
@@ -516,6 +571,19 @@ def west_linear_multi(
                 if new_restart_file_path is not None:
                     logger.info(f'Day {day}: Restart file written to {new_restart_file_path}.')
 
+        #Recording results for warm starting afterwards
+        if record_results_for_warmstart:
+            logger.info(f'Saving results from day {day} for future warm starts...')
+
+            for v in instance.component_objects(Var, active=True):
+                a = str(v)
+                varobject = getattr(instance, a)
+
+                for index in varobject:
+                    if (index[1] > 0) and (index[1] < 25):
+                        outputs_for_warmstart[day][f"{a}[{(index[0], index[1])}]"] = varobject[(index[0], index[1])].value
+
+    
         logger.info(f'Day {day} completed.')
 
         # if only one iteration is desired break the loop
@@ -542,6 +610,11 @@ def west_linear_multi(
     SoC_pd.to_parquet(config.SoC_file, index=False)
     discharge_pd.to_parquet(config.discharge_file, index=False)
     charge_pd.to_parquet(config.charge_file, index=False)
+
+    # Saving warmstart data
+    if record_results_for_warmstart:
+        with open('warm_start_data.pkl', 'wb') as f:
+            cloudpickle.dump(outputs_for_warmstart, f)
 
     # write out the solver parameters as a JSON file
     write_solver_parameters(
