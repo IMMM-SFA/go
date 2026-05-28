@@ -1,0 +1,47 @@
+# gridops – example configuration template
+# Copy this file to your project directory, fill in the actual paths, and
+# pass the path to gridops.Model.run(config_file=...).
+#
+# All paths may be absolute or relative to the directory from which the
+# Python script is executed.
+
+# ---------------------------------------------------------------------------
+# Input files
+# ---------------------------------------------------------------------------
+generator_parameters_file:          Input/data_genparams.csv
+generator_matrix_file:              Input/gen_mat.csv
+line_to_bus_file:                   Input/line_to_bus.csv
+line_parameters_file:               Input/line_param.csv
+daily_hydro_maximum_file:           Input/hydro_max.csv
+daily_hydro_minimum_file:           Input/hydro_min.csv
+daily_hydro_total_file:             Input/hydro_total.csv
+nodal_solar_file:                   Input/nodal_solar.csv
+nodal_wind_file:                    Input/nodal_wind.csv
+nodal_offshore_wind_file:           Input/nodal_offshore_wind.csv
+nodal_load_file:                    Input/nodal_load.csv
+must_run_file:                      Input/must_run.csv
+fuel_prices_file:                   Input/fuel_prices.csv
+ba_to_ba_hurdle_scaled_file:        Input/BA_to_BA_hurdle_scaled.csv
+ba_to_ba_transmission_matrix_file:  Input/BA_to_BA_transmission_matrix.csv
+storage_params_file:                Input/storage_params.csv
+bus_to_storage_matrix_file:         Input/storage_mat.csv
+generator_outage_file:              Input/gen_outage_cat.npy
+thermal_generators_file:            Input/thermal_gens.csv
+lost_capacity_file:                 Input/lost_capacity.csv
+
+# ---------------------------------------------------------------------------
+# Output files
+# ---------------------------------------------------------------------------
+vlt_angle_file:          Output/vlt_angle.parquet
+mwh_file:                Output/mwh.parquet
+slack_file:              Output/slack.parquet
+flow_file:               Output/flow.parquet
+duals_file:              Output/duals.parquet
+storage_soc_file:        Output/storage_soc.parquet
+storage_discharge_file:  Output/storage_discharge.parquet
+storage_charge_file:     Output/storage_charge.parquet
+
+# ---------------------------------------------------------------------------
+# Restart files directory
+# ---------------------------------------------------------------------------
+restart_file_directory: Restart/

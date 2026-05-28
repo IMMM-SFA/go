@@ -1,0 +1,71 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gridops"
+version = "0.1.0"
+dependencies = [
+  "PyYAML>=5.4.1",
+  "requests>=2.25.1",
+  "pyomo>=6.0.1",
+  "cloudpickle>=3.0.0",
+  "pyarrow>=17.0.0",
+  "numpy>=1.26.4",
+  "pandas>=2.2.2",
+  "highspy>=1.10.0",
+]
+requires-python = ">=3.10"
+authors = [
+  {name = "Kerem Ziya Akdemir", email = "keremziya.akdemir@pnnl.gov"},
+  {name = "Jordan Kern", email = "jkern@ncsu.edu"},
+  {name = "Chris Vernon", email = "chris.vernon@pnnl.gov"},
+  {name = "Konstantinos Oikonomou", email = "konstantinos.oikonomou@pnnl.gov"},
+  {name = "Nathalie Voisin", email = "nathalie.voisin@pnnl.gov"},
+  {name = "Henry Ssembatya"},
+  {name = "Jingwei Qian"},
+]
+maintainers = [
+  {name = "Kerem Ziya Akdemir", email = "keremziya.akdemir@pnnl.gov"},
+  {name = "Chris Vernon", email = "chris.vernon@pnnl.gov"},
+]
+description = "An open-source production cost model (PCM) for the U.S. interconnections and grid regions."
+readme = "README.md"
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
+keywords = ["grid operations", "production cost model", "unit commitment", "economic dispatch", "optimal power flow"]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest>=6.2.4",
+  "pytest-cov>=2.12.1",
+]
+docs = [
+  "build>=0.5.1",
+  "nbsphinx>=0.8.6",
+  "setuptools>=57.0.0",
+  "sphinx>=4.0.2",
+  "sphinx-panels>=0.6.0",
+  "sphinx-rtd-theme>=0.5.2",
+]
+deploy = [
+  "twine>=3.4.1",
+]
+
+[project.urls]
+Repository = "https://github.com/IMMM-SFA/gridops"
+Documentation = "https://immm-sfa.github.io/gridops"
+
+[tool.hatch.build]
+packages = ["gridops"]
+include = ["gridops"]
