@@ -1,4 +1,0 @@
-Publications
-============
-
-<fill in>
