@@ -162,7 +162,7 @@ def _ramp_down_rule(
     t:     Hour index.
     """
     prev_mwh = model.InitialMwh[g] if t == 1 else model.mwh[g, t - 1]
-    return prev_mwh - model.mwh[g, t] <= model.ramp[g]
+    return prev_mwh - model.mwh[g, t] <= model.ramp[g] + model.OutageAllowance[g, t]
 
 
 # Capacity constraints
@@ -905,6 +905,17 @@ def build_west_linear(
             j: initial_soc.get(j, pyo.value(model.min_SoC[j]))
             for j in model.Storage
         },
+        mutable=True,
+    )
+
+    # Per-hour outage-forced capacity-reduction allowance added to the ramp-down
+    # constraint RHS. OutageAllowance[g,t] relaxes the ramp-down limit by
+    # exactly the magnitude of the forced capacity reduction. Non-Outage 
+    # thermal generators have no outage adjustments so their values remain 0.
+    model.OutageAllowance = pyo.Param(
+        model.Thermal, model.time_periods,
+        initialize=0,
+        within=pyo.NonNegativeReals,
         mutable=True,
     )
 

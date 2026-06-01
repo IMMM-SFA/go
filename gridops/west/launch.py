@@ -593,6 +593,20 @@ def _update_horizon_params(
                 raw = current - nuc_loss
                 model.HorizonMustrunLimit[b, t] = raw if raw >= SNAP_TOL else 0.0
 
+    # -------------------------------------------------------------------
+    # Ramp-down relaxation for forced capacity reductions
+    # Only Coal/Gas generators (model.Outage) have outage adjustments; all
+    # other Thermal generators have OutageAllowance = 0.
+    # -------------------------------------------------------------------
+    for g in model.Outage:
+        for t in model.time_periods:
+            if t == 1:
+                prev_cap = pyo.value(model.InitialMwh[g])
+            else:
+                prev_cap = pyo.value(model.HorizonGenLimit[g, t - 1])
+            curr_cap = pyo.value(model.HorizonGenLimit[g, t])
+            model.OutageAllowance[g, t] = max(0.0, prev_cap - curr_cap)
+
 
 # ===========================================================================
 # Main launch function
