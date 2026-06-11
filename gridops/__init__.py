@@ -7,7 +7,6 @@ import pyomo.environ
 
 from .configuration import *
 from .model import Model
-from .package_data import *
 from .solvers import GoSolver
 from .utilities import *
 

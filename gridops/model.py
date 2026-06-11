@@ -45,20 +45,6 @@ class Model:
     solver_params:
         Optional dict of solver option name → value pairs.  No defaults are
         imposed by gridops; pass every required option explicitly.
-
-    Examples
-    --------
-    ::
-
-        import gridops as go
-
-        model = go.Model(
-            region="west",
-            problem="linear",
-            solver_name="appsi_highs",
-            solver_params={"Seed": 123},
-        )
-        model.run(config_file="my_config.yml", n_days=7)
     """
 
     #: Maximum random seed value accepted by HiGHS.

@@ -22,17 +22,17 @@ import gridops as go
 
 # Instantiate the model
 model = go.Model(
-    region="west",                     # U.S. Western Interconnection
-    problem="linear",                  # Linear programming (economic dispatch only)
-    solver_name="appsi_highs",         # Using open-source HiGHS solver
-    solver_params=None,                # Optional – using default solver parameters
+    region="west",              # U.S. Western Interconnection
+    problem="linear",           # Linear programming (economic dispatch only)
+    solver_name="appsi_highs",  # Using open-source HiGHS solver
+    solver_params=None,         # Optional – using default solver parameters
 )
 
 # Run for 7 days with a 24-hour rolling horizon
 model.run(
-    config_file="my_config_file.yml",  # Path to the model configuration file
-    n_days=7,                          # Running for 7 days
-    horizon_hours=24,                  # Optional – using default 24-hour horizon
+    config_file="example_config_file.yml",  # Path to the model configuration file
+    n_days=7,                               # Running for 7 days
+    horizon_hours=24,                       # Optional – using default 24-hour horizon
 )
 ```
 
@@ -40,7 +40,7 @@ model.run(
 
 `gridops` needs a YAML file that maps each input CSV and NPY files to their file path and each
 output Parquet to its destination. Check out below for a minimal example (see
-`gridops/data/config.yml` for a full template):
+`gridops/data/example_config_file.yml` for a full template):
 
 ```yaml
 generator_parameters_file: Input/data_genparams.csv
