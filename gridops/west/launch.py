@@ -94,6 +94,28 @@ FUEL_TYPE_MAP: Dict[str, str] = {
 # Data-loading helpers
 # ===========================================================================
 
+def _snap(value: float, tol: float = SNAP_TOL) -> float:
+    """Return *value* unchanged unless ``|value| < tol``, in which case return 0.0.
+
+    Used throughout the model-building and horizon-update code to prevent
+    excessively small (near-zero) values from appearing as constraint RHS
+    or parameter values, which can cause numerical instability.
+
+    Parameters
+    ----------
+    value:
+        The scalar float to evaluate.
+    tol:
+        Snap threshold (default :data:`SNAP_TOL` = 1e-6).
+
+    Returns
+    -------
+    float
+        ``0.0`` when ``|value| < tol``; otherwise *value* unchanged.
+    """
+    return 0.0 if abs(value) < tol else value
+
+
 def _build_gen_sets(df_gen: pd.DataFrame) -> Dict[str, List[str]]:
     """Group generator names by their Pyomo fuel-type set.
 
@@ -294,15 +316,15 @@ def load_simulation_data(config: configuration.Config) -> Dict[str, Any]:
         gen_params[row["name"]] = {
             "typ":       row["typ"],
             "bus":       row["node"],
-            "maxcap":    float(row["maxcap"]),
-            "mincap":    float(row["mincap"]),
-            "heat_rate": float(row["heat_rate"]),
-            "var_om":    float(row["var_om"]),
-            "no_load":   float(row["no_load"]),
-            "st_cost":   float(row["st_cost"]),
-            "ramp":      float(row["ramp"]),
-            "minup":     float(row["minup"]),
-            "mindn":     float(row["mindn"]),
+            "maxcap":    _snap(float(row["maxcap"])),
+            "mincap":    _snap(float(row["mincap"])),
+            "heat_rate": _snap(float(row["heat_rate"])),
+            "var_om":    _snap(float(row["var_om"])),
+            "no_load":   _snap(float(row["no_load"])),
+            "st_cost":   _snap(float(row["st_cost"])),
+            "ramp":      _snap(float(row["ramp"])),
+            "minup":     _snap(float(row["minup"])),
+            "mindn":     _snap(float(row["mindn"])),
         }
 
     # -------------------------------------------------------------------
@@ -311,8 +333,8 @@ def load_simulation_data(config: configuration.Config) -> Dict[str, Any]:
     line_params: Dict[str, Dict] = {}
     for line_name, row in df_line_params.iterrows():
         line_params[line_name] = {
-            "reactance": float(row["reactance"]),
-            "flow_lim":  float(row["limit"]),
+            "reactance": _snap(float(row["reactance"])),
+            "flow_lim":  _snap(float(row["limit"])),
         }
 
     # -------------------------------------------------------------------
@@ -320,7 +342,7 @@ def load_simulation_data(config: configuration.Config) -> Dict[str, Any]:
     # -------------------------------------------------------------------
     exchange_hurdle: Dict[str, float] = {}
     for _, row in df_ba_hurdle.iterrows():
-        exchange_hurdle[row["BA_to_BA"]] = float(row["Hurdle_$/MWh"])
+        exchange_hurdle[row["BA_to_BA"]] = _snap(float(row["Hurdle_$/MWh"]))
 
     # -------------------------------------------------------------------
     # Storage parameter dict
@@ -330,13 +352,13 @@ def load_simulation_data(config: configuration.Config) -> Dict[str, Any]:
         storage_params[row["name"]] = {
             "s_typ":          row["s_typ"],
             "s_bus":          row["s_node"],
-            "charge_rate":    float(row["charge_rate"]),
-            "discharge_rate": float(row["discharge_rate"]),
-            "duration":       float(row["duration"]),
-            "max_SoC":        float(row["max_SoC"]),
-            "min_SoC":        float(row["min_SoC"]),
-            "charge_eff":     float(row["charge_eff"]),
-            "discharge_eff":  float(row["discharge_eff"]),
+            "charge_rate":    _snap(float(row["charge_rate"])),
+            "discharge_rate": _snap(float(row["discharge_rate"])),
+            "duration":       _snap(float(row["duration"])),
+            "max_SoC":        _snap(float(row["max_SoC"])),
+            "min_SoC":        _snap(float(row["min_SoC"])),
+            "charge_eff":     _snap(float(row["charge_eff"])),
+            "discharge_eff":  _snap(float(row["discharge_eff"])),
         }
 
     # -------------------------------------------------------------------
@@ -359,7 +381,7 @@ def load_simulation_data(config: configuration.Config) -> Dict[str, Any]:
     sim_must_run: Dict[str, float] = {}
     if not df_must_run.empty:
         for bus_col in df_must_run.columns:
-            sim_must_run[bus_col] = float(df_must_run[bus_col].iloc[0])
+            sim_must_run[bus_col] = _snap(float(df_must_run[bus_col].iloc[0]))
 
     # -------------------------------------------------------------------
     # Nuclear generator list (for must-run capacity loss adjustment)
@@ -466,8 +488,7 @@ def _update_horizon_params(
     for t in model.time_periods:
         row = demand_slice.iloc[t - 1]
         for b in model.buses:
-            raw = float(row.get(b, 0.0))
-            model.HorizonDemand[b, t] = raw if raw >= SNAP_TOL else 0.0
+            model.HorizonDemand[b, t] = _snap(float(row.get(b, 0.0)))
 
     # -------------------------------------------------------------------
     # Fuel prices (daily resolution → per thermal generator)
@@ -479,7 +500,7 @@ def _update_horizon_params(
             raise ValueError(f"Fuel price for generator {g} not found in fuel_prices_file.")
         else:
             _fp = float(_fp)
-        model.FuelPrice[g] = _fp if abs(_fp) >= SNAP_TOL else 0.0
+        model.FuelPrice[g] = _snap(_fp)
 
     # -------------------------------------------------------------------
     # Hydro limits
@@ -495,14 +516,14 @@ def _update_horizon_params(
         bus = hydro_bus_map[g]
         _hmax = float(df_hydro_max.iloc[day_0idx][bus])
         _hmin = float(df_hydro_min.iloc[day_0idx][bus])
-        model.HorizonHydro_MAX[g] = _hmax if _hmax >= SNAP_TOL else 0.0
-        model.HorizonHydro_MIN[g] = _hmin if _hmin >= SNAP_TOL else 0.0
+        model.HorizonHydro_MAX[g] = _snap(_hmax)
+        model.HorizonHydro_MIN[g] = _snap(_hmin)
         # Sum daily energy budgets over all days in this horizon
         _htotal = sum(
             float(df_hydro_total.iloc[day_0idx + d][bus])
             for d in range(n_horizon_days)
         )
-        model.HorizonHydro_TOTAL[g] = _htotal if _htotal >= SNAP_TOL else 0.0
+        model.HorizonHydro_TOTAL[g] = _snap(_htotal)
 
     # -------------------------------------------------------------------
     # Solar
@@ -512,8 +533,7 @@ def _update_horizon_params(
         bus = solar_bus_map.get(g)
         if bus:
             for t in model.time_periods:
-                raw = float(solar_slice.iloc[t - 1].get(bus, 0.0))
-                model.HorizonSolar[g, t] = raw if raw >= SNAP_TOL else 0.0
+                model.HorizonSolar[g, t] = _snap(float(solar_slice.iloc[t - 1].get(bus, 0.0)))
 
     # -------------------------------------------------------------------
     # Wind
@@ -523,8 +543,7 @@ def _update_horizon_params(
         bus = wind_bus_map.get(g)
         if bus:
             for t in model.time_periods:
-                raw = float(wind_slice.iloc[t - 1].get(bus, 0.0))
-                model.HorizonWind[g, t] = raw if raw >= SNAP_TOL else 0.0
+                model.HorizonWind[g, t] = _snap(float(wind_slice.iloc[t - 1].get(bus, 0.0)))
 
     # -------------------------------------------------------------------
     # Offshore wind
@@ -534,15 +553,14 @@ def _update_horizon_params(
         bus = offshorewind_bus_map.get(g)
         if bus:
             for t in model.time_periods:
-                raw = float(offshorewind_slice.iloc[t - 1].get(bus, 0.0))
-                model.HorizonOffshoreWind[g, t] = raw if raw >= SNAP_TOL else 0.0
+                model.HorizonOffshoreWind[g, t] = _snap(float(offshorewind_slice.iloc[t - 1].get(bus, 0.0)))
 
     # -------------------------------------------------------------------
     # HorizonGenLimit: base = maxcap; losses subtracted afterwards
     # -------------------------------------------------------------------
     gp = sim_data["gen_params"]
     for g in model.Outage:
-        base_cap = gp[g]["maxcap"]
+        base_cap = _snap(gp[g]["maxcap"])
         for t in model.time_periods:
             model.HorizonGenLimit[g, t] = base_cap
 
@@ -551,7 +569,7 @@ def _update_horizon_params(
     # -------------------------------------------------------------------
     sim_must_run = sim_data["sim_must_run"]
     for b in model.buses:
-        base_mr = sim_must_run.get(b, 0.0)
+        base_mr = _snap(sim_must_run.get(b, 0.0))
         for t in model.time_periods:
             model.HorizonMustrunLimit[b, t] = base_mr
 
@@ -575,8 +593,7 @@ def _update_horizon_params(
                 abs_h = h_start_1idx + t - 1 # 1-indexed absolute hour
                 loss = float(df_losses.loc[abs_h, group_name]) / n_in_group
                 current = pyo.value(model.HorizonGenLimit[g, t])
-                raw = current - loss
-                model.HorizonGenLimit[g, t] = raw if raw >= SNAP_TOL else 0.0
+                model.HorizonGenLimit[g, t] = _snap(max(0.0, current - loss))
 
     # -------------------------------------------------------------------
     # Nuclear capacity-loss adjustment applied to all nodes' must-run limit.
@@ -590,8 +607,7 @@ def _update_horizon_params(
                 abs_h = h_start_1idx + t - 1 # 1-indexed absolute hour
                 nuc_loss = float(df_losses.loc[abs_h, "Nuclear_ovr_1000"]) / n_nucs
                 current = pyo.value(model.HorizonMustrunLimit[b, t])
-                raw = current - nuc_loss
-                model.HorizonMustrunLimit[b, t] = raw if raw >= SNAP_TOL else 0.0
+                model.HorizonMustrunLimit[b, t] = _snap(max(0.0, current - nuc_loss))
 
     # -------------------------------------------------------------------
     # Ramp-down relaxation for forced capacity reductions
@@ -605,7 +621,7 @@ def _update_horizon_params(
             else:
                 prev_cap = pyo.value(model.HorizonGenLimit[g, t - 1])
             curr_cap = pyo.value(model.HorizonGenLimit[g, t])
-            model.OutageAllowance[g, t] = max(0.0, prev_cap - curr_cap)
+            model.OutageAllowance[g, t] = _snap(max(0.0, prev_cap - curr_cap))
 
 
 # ===========================================================================
@@ -963,8 +979,8 @@ def west_linear(
         # Thermal generation at the last hour becomes the initial
         # generation (InitialMwh) for the following horizon's ramp constraints.
         for g in instance.Thermal:
-            raw_val = pyo.value(instance.mwh[g, horizon_hours])
-            if raw_val is None or abs(raw_val) < SNAP_TOL:
+            raw_val = _snap(pyo.value(instance.mwh[g, horizon_hours]))
+            if raw_val is None:
                 val = 0.0
             else:
                 val = max(0.0, raw_val)
@@ -972,12 +988,12 @@ def west_linear(
 
         # Storage SoC at the last hour becomes InitialSoC for the next horizon.
         for s in instance.Storage:
-            raw_val = pyo.value(instance.SoC[s, horizon_hours])
+            raw_val = _snap(pyo.value(instance.SoC[s, horizon_hours]))
             min_s = pyo.value(instance.min_SoC[s])
             max_s = pyo.value(instance.max_SoC[s])
-            if raw_val is None or raw_val < min_s - SNAP_TOL:
+            if raw_val is None or raw_val < min_s:
                 val = min_s
-            elif raw_val > max_s + SNAP_TOL:
+            elif raw_val > max_s:
                 val = max_s
             else:
                 val = raw_val
