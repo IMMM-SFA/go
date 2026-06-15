@@ -212,7 +212,7 @@ def load_simulation_data(config: configuration.Config) -> Dict[str, Any]:
         ``sim`` data dictionary for the optimization.
     """
     logger = logging.getLogger(__name__)
-    logger.info("Loading simulation data from input files…")
+    logger.info("Loading simulation data from input files.")
 
     # -------------------------------------------------------------------
     # Read all input CSVs
@@ -837,7 +837,7 @@ def west_linear(
             try:
                 opt._solver_model.clearSolver()
                 logger.info(
-                    f"Horizon {horizon_idx}: cleared HiGHS solver state (warmstart=False)."
+                    f"Horizon {horizon_idx}: Cleared HiGHS solver state (warmstart=False)."
                 )
             except Exception as e:
                 logger.warning(
@@ -847,7 +847,7 @@ def west_linear(
         # ---------------------------------------------------------------
         # Update mutable Pyomo parameters for this horizon window
         # ---------------------------------------------------------------
-        logger.info(f"Horizon {horizon_idx}: updating parameters.")
+        logger.info(f"Horizon {horizon_idx}: Updating parameters.")
         _update_horizon_params(model, sim_data, horizon_idx, horizon_hours)
 
         # ---------------------------------------------------------------
@@ -867,7 +867,7 @@ def west_linear(
         # ---------------------------------------------------------------
         # Solve
         # ---------------------------------------------------------------
-        logger.info(f"Horizon {horizon_idx}: starting optimization.")
+        logger.info(f"Horizon {horizon_idx}: Starting optimization.")
 
         try:
             result = opt.solve(
@@ -1035,7 +1035,7 @@ def west_linear(
     # -------------------------------------------------------------------
     # Save outputs as Parquet files
     # -------------------------------------------------------------------
-    logger.info("Writing output Parquet files …")
+    logger.info("Writing output files.")
 
     pd.DataFrame(vlt_angle, columns=("Node", "Time", "Value")).to_parquet(config.vlt_angle_file, index=False)
     pd.DataFrame(mwh, columns=("Generator", "Type", "Time", "Value")).to_parquet(config.mwh_file, index=False)

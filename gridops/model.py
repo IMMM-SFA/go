@@ -67,7 +67,7 @@ class Model:
         if region == "west" and problem == "linear":
             from gridops.west.launch import west_linear
             self._launch_fn = west_linear
-            self.logger.info(f"Configuration: {region}_{problem}")
+            self.logger.info(f"Configuration: U.S. Western Interconnection - Economic Dispatch")
 
         elif region in ("east", "ercot"):
             raise NotImplementedError(
@@ -431,13 +431,13 @@ class Model:
                 
                 else:
                     self.logger.warning(
-                        f"[RETRY MODE] Unknown algorithm '{algo}'; skipping..."
+                        f"[RETRY MODE] Unknown algorithm '{algo}', skipping."
                     )
 
         # Cap the trial list at max_retries
         if len(trial_list) > max_retries:
             self.logger.info(
-                f"[RETRY MODE] {len(trial_list)} candidates generated; capping at max_retries={max_retries}.",
+                f"[RETRY MODE] {len(trial_list)} candidates generated, capping at max_retries={max_retries}.",
             )
             trial_list = trial_list[:max_retries]
 
@@ -500,7 +500,7 @@ class Model:
                     config.restart_file_directory
                 )
                 if prior_day is None:
-                    self.logger.error("[RETRY MODE] No prior restart file. Aborting...")
+                    self.logger.error("[RETRY MODE] No prior restart file. Aborting.")
                     raise last_exc
                 else:
                     # Vary seed and back off to previous restart
@@ -520,5 +520,5 @@ class Model:
                         **kwargs,
                     )
             else:
-                self.logger.error("[RETRY MODE] All trials exhausted. Aborting...")
+                self.logger.error("[RETRY MODE] All trials exhausted. Aborting.")
                 raise last_exc

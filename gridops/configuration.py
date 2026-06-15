@@ -176,7 +176,7 @@ def generate_config(
     if config_file is None:
         config = Config(**kwargs)
     else:
-        logger.info(f"Loading configuration from: {config_file}")
+        logger.info(f"Loading configuration file.")
         config_dict = read_config_file(config_file)
         config = Config(**config_dict)
 

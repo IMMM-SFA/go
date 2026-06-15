@@ -212,6 +212,6 @@ def clear_restart_files(dir: str) -> int:
     for fp in files:
         Path(fp).unlink()
     if files:
-        logger.info(f"Cleared {len(files)} restart file(s) from {dir}.")
+        logger.info(f"Cleared {len(files)} restart file(s).")
     return len(files)
 
