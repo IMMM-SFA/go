@@ -1,0 +1,47 @@
+# gridops – example configuration template
+# Copy this file to your project directory, fill in the actual paths, and
+# pass the path to gridops.Model.run(config_file=...).
+#
+# All paths may be absolute or relative to the directory from which the
+# Python script is executed.
+
+# ---------------------------------------------------------------------------
+# Input files
+# ---------------------------------------------------------------------------
+generator_parameters_file:          example_inputs/data_genparams.csv
+generator_matrix_file:              example_inputs/gen_mat.csv
+line_to_bus_file:                   example_inputs/line_to_bus.csv
+line_parameters_file:               example_inputs/line_param.csv
+daily_hydro_maximum_file:           example_inputs/hydro_max.csv
+daily_hydro_minimum_file:           example_inputs/hydro_min.csv
+daily_hydro_total_file:             example_inputs/hydro_total.csv
+nodal_solar_file:                   example_inputs/nodal_solar.csv
+nodal_wind_file:                    example_inputs/nodal_wind.csv
+nodal_offshore_wind_file:           example_inputs/nodal_offshore_wind.csv
+nodal_load_file:                    example_inputs/nodal_load.csv
+must_run_file:                      example_inputs/must_run.csv
+fuel_prices_file:                   example_inputs/fuel_prices.csv
+ba_to_ba_hurdle_scaled_file:        example_inputs/BA_to_BA_hurdle_scaled.csv
+ba_to_ba_transmission_matrix_file:  example_inputs/BA_to_BA_transmission_matrix.csv
+storage_params_file:                example_inputs/storage_params.csv
+bus_to_storage_matrix_file:         example_inputs/storage_mat.csv
+generator_outage_file:              example_inputs/gen_outage_cat.npy
+thermal_generators_file:            example_inputs/thermal_gens.csv
+lost_capacity_file:                 example_inputs/lost_capacity.csv
+
+# ---------------------------------------------------------------------------
+# Output files
+# ---------------------------------------------------------------------------
+vlt_angle_file:          example_outputs/vlt_angle.parquet
+mwh_file:                example_outputs/mwh.parquet
+slack_file:              example_outputs/slack.parquet
+flow_file:               example_outputs/flow.parquet
+duals_file:              example_outputs/duals.parquet
+storage_soc_file:        example_outputs/storage_soc.parquet
+storage_discharge_file:  example_outputs/storage_discharge.parquet
+storage_charge_file:     example_outputs/storage_charge.parquet
+
+# ---------------------------------------------------------------------------
+# Restart files directory
+# ---------------------------------------------------------------------------
+restart_file_directory: example_restart_files
