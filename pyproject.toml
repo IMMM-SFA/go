@@ -22,8 +22,8 @@ authors = [
   {name = "Chris Vernon", email = "chris.vernon@pnnl.gov"},
   {name = "Konstantinos Oikonomou", email = "konstantinos.oikonomou@pnnl.gov"},
   {name = "Nathalie Voisin", email = "nathalie.voisin@pnnl.gov"},
-  {name = "Henry Ssembatya"},
-  {name = "Jingwei Qian"},
+  {name = "Henry Ssembatya", email = "hssemba@ncsu.edu"},
+  {name = "Jingwei Qian", email = "jqian4@ncsu.edu"},
 ]
 maintainers = [
   {name = "Kerem Ziya Akdemir", email = "keremziya.akdemir@pnnl.gov"},
