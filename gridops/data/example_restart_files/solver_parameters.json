@@ -1,0 +1,14 @@
+{
+    "0": {
+        "log_to_console": false,
+        "output_flag": false,
+        "solver": "ipm",
+        "run_crossover": "on"
+    },
+    "1": {
+        "log_to_console": false,
+        "output_flag": false,
+        "solver": "ipm",
+        "run_crossover": "on"
+    }
+}
