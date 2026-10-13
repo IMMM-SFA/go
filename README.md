@@ -3,6 +3,7 @@
 `gridops` is an open-source and customizable grid operations modeling framework for the three major U.S. interconnections (Western, Eastern, ERCOT). Production cost modeling in `gridops` utilizes linear DC Optimal Power Flow (DC-OPF) approximation to optimize hourly unit commitment (UC) and economic dispatch (ED) processes over a user-configurable rolling horizon.
 
 ## Purpose
+
 `gridops` was created to:
   - Address weather and water dynamics and associated vulnerabilities in U.S. bulk power systems,
   - Link with a wide range of hydrometeorological datasets and energy system/machine learning models to explore future uncertainty in grid operations,
@@ -76,3 +77,9 @@ BSD-2-Clause – See [LICENSE](LICENSE).
 ## Disclaimer
 
 See [DISCLAIMER](DISCLAIMER).
+
+## Reference
+
+If you use gridops in an academic context, please cite the following article.
+
+Akdemir, K. Z., Oikonomou, K., Kern, J. D., Voisin, N., Ssembatya, H., & Qian, J. (2024). An open-source framework for balancing computational speed and fidelity in production cost models. Environmental Research: Energy, 1(1), 015003. https://doi.org/10.1088/2753-3751/ad1751
