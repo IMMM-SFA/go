@@ -22,8 +22,6 @@ MINIMAL_KWARGS = {
     "nodal_load_file":                   "Input/nodal_load.csv",
     "must_run_file":                     "Input/must_run.csv",
     "fuel_prices_file":                  "Input/fuel_prices.csv",
-    "ba_to_ba_hurdle_scaled_file":       "Input/BA_to_BA_hurdle_scaled.csv",
-    "ba_to_ba_transmission_matrix_file": "Input/BA_to_BA_transmission_matrix.csv",
     "storage_params_file":               "Input/storage_params.csv",
     "bus_to_storage_matrix_file":        "Input/storage_mat.csv",
     "generator_outage_file":             "Input/gen_outage_cat.npy",

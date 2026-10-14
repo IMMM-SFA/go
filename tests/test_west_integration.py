@@ -9,7 +9,7 @@ def _make_minimal_data(horizon_hours: int = 2) -> dict:
     """Return a minimal synthetic ``sim`` data dict for unit testing.
 
     The network has one bus (``bus_100011``, the hardcoded reference bus),
-    one coal generator, one gas generator, no lines, no exchanges, and no
+    one coal generator, one gas generator, no lines, and no
     storage.  Mutable Horizon parameters are left at their initial value of
     zero; a test that needs meaningful values should update them after
     calling :func:`~gridops.west.linear.build_west_linear`.
@@ -27,7 +27,6 @@ def _make_minimal_data(horizon_hours: int = 2) -> dict:
     """
     nodes = ["bus_100011"]
     lines = []
-    exchanges = []
     storage_units = []
 
     gen_sets = {
@@ -77,12 +76,10 @@ def _make_minimal_data(horizon_hours: int = 2) -> dict:
         "outage_group_sets": {},
         "buses":             nodes,
         "lines":             lines,
-        "exchanges":         exchanges,
         "storage_units":     storage_units,
         # Static params
         "gen_params":        gen_params,
         "line_params":       {},
-        "exchange_hurdle":   {},
         "storage_params":    {},
         # Sparse mapping dicts
         "bus_to_unit_map": {
@@ -90,7 +87,6 @@ def _make_minimal_data(horizon_hours: int = 2) -> dict:
             ("gas_1",  "bus_100011"): 1.0,
         },
         "line_to_bus_map":    {},
-        "exchange_map":       {},
         "bus_to_storage_map": {},
         # Initial states (both zero for construction test)
         "initial_gen": {},

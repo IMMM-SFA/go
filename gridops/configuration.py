@@ -47,11 +47,6 @@ class Config:
         (single row showing the capacities, columns = only nodes with must-run generators).
     fuel_prices_file:
         CSV of daily fuel prices per thermal generator (rows = days, columns = thermal generators).
-    ba_to_ba_hurdle_scaled_file:
-        CSV mapping each BA-to-BA exchange to its hurdle rate ($/MWh).
-    ba_to_ba_transmission_matrix_file:
-        CSV mapping each BA-to-BA exchange to the lines it covers
-        (rows = exchanges, columns = lines).
     storage_params_file:
         CSV with storage-unit parameters (name, charge_rate, etc.).
     bus_to_storage_matrix_file:
@@ -100,8 +95,6 @@ class Config:
     nodal_load_file: str
     must_run_file: str
     fuel_prices_file: str
-    ba_to_ba_hurdle_scaled_file: str
-    ba_to_ba_transmission_matrix_file: str
     storage_params_file: str
     bus_to_storage_matrix_file: str
     generator_outage_file: str

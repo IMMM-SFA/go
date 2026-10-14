@@ -39,10 +39,9 @@ def _sys_cost_rule(model: pyo.ConcreteModel) -> pyo.Expression:
        force the solver to prefer physical generation over load shedding.
     3. **Hydro, wind, solar, offshore-wind** = small :data:`RENEWABLE_GEN_COST`
        $/MWh cost to break ties and produce a unique dispatch.
-    4. **BA-to-BA exchange hurdles** = transmission charges on cross-BA flows.
-    5. **Dummy flow** = :data:`DUMMY_FLOW_PENALTY` $/MWh on the absolute-value
+    4. **Dummy flow** = :data:`DUMMY_FLOW_PENALTY` $/MWh on the absolute-value
        proxy variable to discourage routing slack generation.
-    6. **Storage charge/discharge** = :data:`STORAGE_COST` $/MWh to prevent 
+    5. **Storage charge/discharge** = :data:`STORAGE_COST` $/MWh to prevent 
     simultaneous charge-discharge.
 
     Parameters
@@ -88,12 +87,6 @@ def _sys_cost_rule(model: pyo.ConcreteModel) -> pyo.Expression:
         for t in model.time_periods
         for g in model.Solar
     )
-    # BA-to-BA exchange hurdle costs
-    exchange_cost = pyo.quicksum(
-        model.Flow[l, t] * coeff * model.ExchangeHurdle[k]
-        for (k, l), coeff in model._exchange_line_pairs
-        for t in model.time_periods
-    )
     # Absolute-flow proxy penalty (discourages slack routing)
     dummy_flow_cost = pyo.quicksum(
         model.DummyFlow[l, t] * DUMMY_FLOW_PENALTY
@@ -113,7 +106,7 @@ def _sys_cost_rule(model: pyo.ConcreteModel) -> pyo.Expression:
     )
     return (
         gen_cost + slack_cost + hydro_cost + wind_cost + solar_cost
-        + exchange_cost + offshore_wind_cost + dummy_flow_cost
+        + offshore_wind_cost + dummy_flow_cost
         + charge_cost + discharge_cost
     )
 
@@ -611,7 +604,6 @@ def build_west_linear(
     # -----------------------------------------------------------------------
     model.buses = pyo.Set(initialize=data["buses"])
     model.lines = pyo.Set(initialize=data["lines"])
-    model.exchanges = pyo.Set(initialize=data["exchanges"])
 
     # -----------------------------------------------------------------------
     # STATIC GENERATOR PARAMETERS
@@ -659,19 +651,6 @@ def build_west_linear(
     model.BusToUnitMap = pyo.Param(
         model.Generators, model.buses,
         initialize=data["bus_to_unit_map"],
-        default=0,
-    )
-
-    # ExchangeHurdle[exchange]: $/MWh hurdle rate for each BA-to-BA exchange
-    model.ExchangeHurdle = pyo.Param(
-        model.exchanges,
-        initialize=data["exchange_hurdle"],
-    )
-
-    # ExchangeMap[exchange, line]: Maps exchanges to the lines they encompass
-    model.ExchangeMap = pyo.Param(
-        model.exchanges, model.lines,
-        initialize=data["exchange_map"],
         default=0,
     )
 
@@ -803,12 +782,6 @@ def build_west_linear(
     for (l, b), coeff in data["line_to_bus_map"].items():
         _buses_on_line[l].append((b, coeff))
     model._buses_on_line = _buses_on_line
-
-    # [(key, coeff), ...] – non-zero (exchange, line) pairs with coefficients
-    model._exchange_line_pairs = [
-        ((k, l), coeff)
-        for (k, l), coeff in data["exchange_map"].items()
-    ]
 
     # -----------------------------------------------------------------------
     # DECISION VARIABLES

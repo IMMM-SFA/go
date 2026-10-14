@@ -21,8 +21,6 @@ nodal_offshore_wind_file:           example_inputs/nodal_offshore_wind.csv
 nodal_load_file:                    example_inputs/nodal_load.csv
 must_run_file:                      example_inputs/must_run.csv
 fuel_prices_file:                   example_inputs/fuel_prices.csv
-ba_to_ba_hurdle_scaled_file:        example_inputs/BA_to_BA_hurdle_scaled.csv
-ba_to_ba_transmission_matrix_file:  example_inputs/BA_to_BA_transmission_matrix.csv
 storage_params_file:                example_inputs/storage_params.csv
 bus_to_storage_matrix_file:         example_inputs/storage_mat.csv
 generator_outage_file:              example_inputs/gen_outage_cat.npy
