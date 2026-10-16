@@ -25,6 +25,17 @@ from gridops.west.linear import build_west_linear
 SNAP_TOL: float = 1e-6
 
 # ---------------------------------------------------------------------------
+# Must-run (nuclear) output labeling
+# ---------------------------------------------------------------------------
+
+# Suffix appended to a bus name to label aggregated must-run output
+# in the results (e.g. ``bus_106001`` -> ``bus_106001_NUCLEAR``).
+MUST_RUN_NAME_SUFFIX: str = "_NUCLEAR"
+
+# Value written to the ``Type`` column of the results for must-run rows.
+MUST_RUN_TYPE: str = "Nuclear"
+
+# ---------------------------------------------------------------------------
 # Fuel-type → Pyomo set name mapping
 # ---------------------------------------------------------------------------
 
@@ -783,6 +794,11 @@ def west_linear(
         for g in gen_list:
             gen_type_lookup[g] = fuel_type
 
+    # Buses with must-run (nuclear) capacity.
+    must_run_buses: List[str] = [
+        b for b, cap in sim_data["sim_must_run"].items() if cap > 0.0
+    ]
+
     # -------------------------------------------------------------------
     # Horizon loop
     # -------------------------------------------------------------------
@@ -912,6 +928,23 @@ def west_linear(
                     logger.error(
                         f"Negative generation: mwh[{g}, {t}] = {val:.6f} at horizon {horizon_idx}."
                     )
+
+        # Must-run (nuclear) output: not a decision variable, so record the
+        # outage-adjusted HorizonMustrunLimit that enters the bus balance.
+        # Only buses with positive base must-run capacity are reported.
+        for b in must_run_buses:
+            if b not in instance.buses:
+                continue
+            for t in instance.time_periods:
+                abs_h = abs_hour_offset + t
+                mwh.append(
+                    (
+                        f"{b}{MUST_RUN_NAME_SUFFIX}",
+                        MUST_RUN_TYPE,
+                        abs_h,
+                        pyo.value(instance.HorizonMustrunLimit[b, t]),
+                    )
+                )
 
         if has_negative_gen:
             if save_restart_file and restart_data is not None:

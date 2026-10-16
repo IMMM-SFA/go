@@ -65,7 +65,8 @@ class Config:
     Output files
     ------------
     vlt_angle_file:    Parquet - hourly nodal voltage angles.
-    mwh_file:          Parquet - hourly generator dispatch (MWh per unit).
+    mwh_file:          Parquet - hourly generator dispatch (MWh per unit); also includes
+                       must-run nuclear output per bus (Type "Nuclear").
     slack_file:        Parquet - hourly unserved demand per node.
     flow_file:         Parquet - hourly transmission line flows per line.
     duals_file:        Parquet - hourly nodal locational marginal prices (LMPs).
