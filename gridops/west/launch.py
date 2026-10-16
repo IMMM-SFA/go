@@ -915,20 +915,6 @@ def west_linear(
         # ---------------------------------------------------------------
         abs_hour_offset = horizon_idx * horizon_hours
 
-        # Generator dispatch (mwh) — includes negative-generation sanity check
-        has_negative_gen = False
-        for g in instance.Generators:
-            fuel_type = gen_type_lookup.get(g, "Unknown")
-            for t in instance.time_periods:
-                abs_h = abs_hour_offset + t
-                val = pyo.value(instance.mwh[g, t])
-                mwh.append((g, fuel_type, abs_h, val))
-                if val is not None and val < -1e-3:
-                    has_negative_gen = True
-                    logger.error(
-                        f"Negative generation: mwh[{g}, {t}] = {val:.6f} at horizon {horizon_idx}."
-                    )
-
         # Must-run (nuclear) output: not a decision variable, so record the
         # outage-adjusted HorizonMustrunLimit that enters the bus balance.
         # Only buses with positive base must-run capacity are reported.
@@ -945,6 +931,20 @@ def west_linear(
                         pyo.value(instance.HorizonMustrunLimit[b, t]),
                     )
                 )
+
+        # Generator dispatch (mwh) — includes negative-generation sanity check
+        has_negative_gen = False
+        for g in instance.Generators:
+            fuel_type = gen_type_lookup.get(g, "Unknown")
+            for t in instance.time_periods:
+                abs_h = abs_hour_offset + t
+                val = pyo.value(instance.mwh[g, t])
+                mwh.append((g, fuel_type, abs_h, val))
+                if val is not None and val < -1e-3:
+                    has_negative_gen = True
+                    logger.error(
+                        f"Negative generation: mwh[{g}, {t}] = {val:.6f} at horizon {horizon_idx}."
+                    )
 
         if has_negative_gen:
             if save_restart_file and restart_data is not None:
